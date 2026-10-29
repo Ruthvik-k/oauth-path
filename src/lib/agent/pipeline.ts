@@ -236,6 +236,9 @@ export async function generateGuide(rawQuery: string, emit: Emit, opts: { force?
     emit({ type: "done", slug, cached: true, name: app.name });
     return slug;
   }
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error(`There's no guide for ${app.name} yet, and live generation isn't configured on this server (OPENAI_API_KEY is missing).`);
+  }
   const composio = await lookupComposio(composioNames);
   emit({ type: "log", stage: "resolve", message: composio.note });
   emit({ type: "stage", stage: "resolve", status: "done", message: app.name });

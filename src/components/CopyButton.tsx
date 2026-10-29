@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-export function CopyButton({ text, label = "Copy", className }: { text: string; label?: string; className?: string }) {
+export function CopyButton({
+  text,
+  label = "Copy",
+  className,
+}: {
+  text: string | (() => string);
+  label?: string;
+  className?: string;
+}) {
   const [done, setDone] = useState(false);
   useEffect(() => {
     if (!done) return;
@@ -13,7 +21,7 @@ export function CopyButton({ text, label = "Copy", className }: { text: string; 
     <button
       type="button"
       onClick={async () => {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(typeof text === "function" ? text() : text);
         setDone(true);
       }}
       className={
@@ -37,11 +45,9 @@ export function ShareBar({
   markdown: string;
   origin: "curated" | "generated";
 }) {
-  const [url, setUrl] = useState(`/guides/${slug}`);
-  useEffect(() => setUrl(window.location.href.split("#")[0]), []);
   return (
     <div className="no-print flex flex-wrap items-center gap-2">
-      <CopyButton text={url} label="Copy share link" />
+      <CopyButton text={() => window.location.href.split("#")[0]} label="Copy share link" />
       <CopyButton text={markdown} label="Copy as Markdown" />
       <a
         href={`/guides/${slug}/markdown`}

@@ -1,28 +1,50 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 import type { Phase, Source } from "@/lib/guide-schema";
 import { ConfidenceBadge, OwnerBadge, SourceChips, cx } from "./ui";
 
 const PHASE_ICON: Record<Phase["id"], string> = { prepare: "1", build: "2", go_live: "3", maintain: "4" };
+const CHANGE_EVENT = "oauth-path-progress";
+
+/** Checklist progress lives in localStorage so a developer can come back to where they left off. */
+function useProgress(key: string): [Record<string, boolean>, (next: Record<string, boolean>) => void] {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const onStorage = (e: StorageEvent) => e.key === key && onChange();
+      window.addEventListener("storage", onStorage);
+      window.addEventListener(CHANGE_EVENT, onChange);
+      return () => {
+        window.removeEventListener("storage", onStorage);
+        window.removeEventListener(CHANGE_EVENT, onChange);
+      };
+    },
+    [key],
+  );
+  const raw = useSyncExternalStore(
+    subscribe,
+    () => localStorage.getItem(key) ?? "{}",
+    () => "{}",
+  );
+  const done = useMemo(() => {
+    try {
+      return JSON.parse(raw) as Record<string, boolean>;
+    } catch {
+      return {};
+    }
+  }, [raw]);
+  const setDone = useCallback(
+    (next: Record<string, boolean>) => {
+      localStorage.setItem(key, JSON.stringify(next));
+      window.dispatchEvent(new Event(CHANGE_EVENT));
+    },
+    [key],
+  );
+  return [done, setDone];
+}
 
 export function Checklist({ slug, phases, sources }: { slug: string; phases: Phase[]; sources: Source[] }) {
-  const key = `oauth-path:progress:${slug}`;
-  const [done, setDone] = useState<Record<string, boolean>>({});
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    try {
-      setDone(JSON.parse(localStorage.getItem(key) ?? "{}"));
-    } catch {
-      // ignore corrupt progress
-    }
-    setLoaded(true);
-  }, [key]);
-
-  useEffect(() => {
-    if (loaded) localStorage.setItem(key, JSON.stringify(done));
-  }, [done, key, loaded]);
+  const [done, setDone] = useProgress(`oauth-path:progress:${slug}`);
 
   const all = useMemo(() => phases.flatMap((p, pi) => p.steps.map((s, si) => ({ id: `${pi}.${si}`, step: s, phase: p }))), [phases]);
   const completed = all.filter((x) => done[x.id]).length;
@@ -83,7 +105,7 @@ export function Checklist({ slug, phases, sources }: { slug: string; phases: Pha
                       <input
                         type="checkbox"
                         checked={!!done[id]}
-                        onChange={(e) => setDone((d) => ({ ...d, [id]: e.target.checked }))}
+                        onChange={(e) => setDone({ ...done, [id]: e.target.checked })}
                         className="mt-1 h-4 w-4 accent-indigo-600"
                       />
                       <div className="min-w-0 flex-1">

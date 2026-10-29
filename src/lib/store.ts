@@ -20,7 +20,7 @@ export type GuideSummary = {
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,80}$/;
 const INDEX_PATH = "guides/_index.json";
 
-const useBlob = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+const blobEnabled = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 
 // Local development stores generated guides on disk. On Vercel without Blob configured,
 // only /tmp is writable, so guides survive just for the lifetime of the instance.
@@ -28,7 +28,7 @@ const localDir = () =>
   process.env.VERCEL ? path.join(os.tmpdir(), "oauth-path") : path.join(process.cwd(), ".data");
 
 async function readJson<T>(pathname: string): Promise<T | null> {
-  if (useBlob()) {
+  if (blobEnabled()) {
     try {
       const res = await get(pathname, { access: "private", useCache: false });
       if (!res || res.statusCode !== 200) return null;
@@ -46,7 +46,7 @@ async function readJson<T>(pathname: string): Promise<T | null> {
 
 async function writeJson(pathname: string, value: unknown) {
   const body = JSON.stringify(value, null, 2);
-  if (useBlob()) {
+  if (blobEnabled()) {
     await put(pathname, body, {
       access: "private",
       contentType: "application/json",
@@ -109,4 +109,4 @@ export async function saveGeneratedGuide(guide: Guide): Promise<void> {
   await writeJson(INDEX_PATH, index);
 }
 
-export const storageMode = () => (useBlob() ? "vercel-blob" : process.env.VERCEL ? "ephemeral-tmp" : "local-disk");
+export const storageMode = () => (blobEnabled() ? "vercel-blob" : process.env.VERCEL ? "ephemeral-tmp" : "local-disk");
