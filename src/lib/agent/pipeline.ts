@@ -4,8 +4,9 @@ import { lookupComposio, type ComposioStatus } from "../composio";
 import { GuideContentSchema, type Confidence, type Guide, type GuideContent } from "../guide-schema";
 import { getCuratedGuide, getGeneratedGuide, saveGeneratedGuide } from "../store";
 import type { Emit } from "./events";
-import { modelLabel, provider, structured, webResearch } from "./llm";
+import { modelLabel, nativeSearch, provider, structured, webResearch } from "./llm";
 import { runProbes } from "./probes";
+import { searchWeb } from "./search";
 import { RESOLVE_SYSTEM, synthesisSystemPrompt, type ResolvedApp } from "./prompts";
 import { research, type ResearchResult } from "./research";
 import { verifyClaims } from "./verify";
@@ -41,17 +42,26 @@ async function resolveApp(query: string, emit: Emit): Promise<{ app: ResolvedApp
   }
   emit({ type: "log", stage: "resolve", message: `“${query}” is not in the library. Looking it up on the web…` });
   if (!provider()) throw new Error(`“${query}” isn't in the library, and live generation isn't configured on this server (no GEMINI_API_KEY or OPENAI_API_KEY).`);
-  const found = await webResearch({
-    fast: true,
-    system: RESOLVE_SYSTEM,
-    prompt: `The developer typed: "${query}". Identify the product, its official website, what it does, and whether it offers OAuth 2.0 for third-party developers (name the developer docs page if you find it).`,
-  });
+  const found = nativeSearch()
+    ? (
+        await webResearch({
+          fast: true,
+          system: RESOLVE_SYSTEM,
+          prompt: `The developer typed: "${query}". Identify the product, its official website, what it does, and whether it offers OAuth 2.0 for third-party developers (name the developer docs page if you find it).`,
+        })
+      ).text
+    : (
+        await Promise.all([searchWeb(`${query} official site`, 5), searchWeb(`${query} OAuth developer API`, 5)])
+      )
+        .flat()
+        .map((r) => `- ${r.title} | ${r.url} | ${r.snippet}`)
+        .join("\n");
   const r = await structured({
     fast: true,
     name: "resolved_app",
     schema: ResolveSchema,
     system: RESOLVE_SYSTEM,
-    user: `The developer typed: "${query}"\n\nWeb findings:\n${found.text}\n\nReturn the identification as JSON.`,
+    user: `The developer typed: "${query}"\n\nWeb findings:\n${found}\n\nReturn the identification as JSON.`,
     maxOutputTokens: 2048,
   });
   if (!r.recognized || !r.name.trim()) {

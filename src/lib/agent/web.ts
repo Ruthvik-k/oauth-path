@@ -81,6 +81,28 @@ export function relevantExcerpt(text: string, claim: string, maxChars = 12_000):
     .slice(0, maxChars);
 }
 
+/** Fetches an HTML page and returns its links (absolute URLs + anchor text). Used when web search is unavailable. */
+export async function fetchLinks(url: string): Promise<{ finalUrl: string; links: { url: string; text: string }[] } | null> {
+  try {
+    const res = await fetchWithTimeout(url, { redirect: "follow" }, 10_000);
+    if (!res.ok || !(res.headers.get("content-type") ?? "").includes("html")) return null;
+    const html = await res.text();
+    const links: { url: string; text: string }[] = [];
+    for (const m of html.matchAll(/<a\b[^>]*href=["']([^"'#]+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+      try {
+        const abs = new URL(m[1], res.url);
+        if (!/^https?:$/.test(abs.protocol)) continue;
+        links.push({ url: abs.toString(), text: htmlToText(m[2]).slice(0, 120) });
+      } catch {
+        // skip malformed hrefs
+      }
+    }
+    return { finalUrl: res.url, links };
+  } catch {
+    return null;
+  }
+}
+
 export function normalizeUrl(url: string): string {
   try {
     const u = new URL(url);

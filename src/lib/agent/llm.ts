@@ -4,7 +4,7 @@
  *  - structured: produce JSON that validates against a Zod schema
  * Google Gemini (free tier with Google Search grounding) and OpenAI (Responses API + web_search) both implement them.
  */
-import { GoogleGenAI, type GroundingMetadata } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel, type GroundingMetadata } from "@google/genai";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
@@ -27,6 +27,14 @@ function requireProvider(): Provider {
   return p;
 }
 
+/**
+ * Whether research uses the provider's built-in web search. Gemini's Google Search grounding has no free-tier quota
+ * on many projects, so by default Gemini research runs our own search-and-read loop instead (set GEMINI_GROUNDING=1 to opt in).
+ */
+export function nativeSearch(): boolean {
+  return requireProvider() === "openai" || process.env.GEMINI_GROUNDING === "1";
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Retries rate-limit and transient errors; free tiers have low per-minute quotas. */
@@ -39,10 +47,11 @@ async function withRetry<T>(fn: () => Promise<T>, label: string, attempts = 5): 
       last = e;
       const err = e as { status?: number; message?: string };
       const status = err.status ?? Number(/\b(429|500|502|503|504)\b/.exec(err.message ?? "")?.[1] ?? 0);
-      if (![429, 500, 502, 503, 504].includes(status) || i === attempts - 1) throw e;
+      const network = /Incomplete JSON segment|fetch failed|terminated|ECONNRESET|socket hang up|other side closed/i.test(err.message ?? "");
+      if ((!network && ![429, 500, 502, 503, 504].includes(status)) || i === attempts - 1) throw e;
       const hinted = /retry(?:Delay)?["':\s]+(\d+(?:\.\d+)?)s/i.exec(err.message ?? "");
       const wait = Math.min(hinted ? Number(hinted[1]) * 1000 + 500 : 2000 * 2 ** i, 40_000);
-      console.warn(`[llm] ${label}: HTTP ${status}, retrying in ${Math.round(wait / 1000)}s`);
+      console.warn(`[llm] ${label}: ${network ? "connection dropped" : `HTTP ${status}`}, retrying in ${Math.round(wait / 1000)}s`);
       await sleep(wait);
     }
   }
@@ -56,10 +65,14 @@ const geminiClient = () => (gemini ??= new GoogleGenAI({ apiKey: process.env.GEM
 
 let geminiModels: Promise<{ main: string; fast: string }> | null = null;
 
-/** Picks the newest available stable Flash / Flash-Lite models unless GEMINI_MODEL / GEMINI_FAST_MODEL are set. */
+/**
+ * Picks models unless GEMINI_MODEL / GEMINI_FAST_MODEL are set. Speed matters for a live demo: in our benchmark
+ * gemini-3.5-flash answered a research prompt in ~9s vs ~150s for gemini-3.8-flash, so we prefer known-fast models
+ * and fall back to the newest available Flash / Flash-Lite.
+ */
 function pickGeminiModels(): Promise<{ main: string; fast: string }> {
   geminiModels ??= (async () => {
-    const fallback = { main: "gemini-2.5-flash", fast: "gemini-2.5-flash-lite" };
+    const fallback = { main: "gemini-flash-latest", fast: "gemini-flash-lite-latest" };
     let names: string[] = [];
     try {
       const pager = await geminiClient().models.list({ config: { pageSize: 200 } });
@@ -69,17 +82,31 @@ function pickGeminiModels(): Promise<{ main: string; fast: string }> {
     } catch {
       names = [];
     }
+    const preferred = (list: string[]) => list.find((n) => names.includes(n));
     const best = (re: RegExp) =>
       names
         .map((n) => ({ n, m: re.exec(n) }))
         .filter((x): x is { n: string; m: RegExpExecArray } => !!x.m)
         .sort((a, b) => Number(b.m[1]) - Number(a.m[1]))[0]?.n;
     return {
-      main: process.env.GEMINI_MODEL || best(/^gemini-(\d+(?:\.\d+)?)-flash$/) || fallback.main,
-      fast: process.env.GEMINI_FAST_MODEL || best(/^gemini-(\d+(?:\.\d+)?)-flash-lite$/) || fallback.fast,
+      main:
+        process.env.GEMINI_MODEL ||
+        preferred(["gemini-3.5-flash", "gemini-flash-latest"]) ||
+        best(/^gemini-(\d+(?:\.\d+)?)-flash$/) ||
+        fallback.main,
+      fast:
+        process.env.GEMINI_FAST_MODEL ||
+        preferred(["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-lite-latest"]) ||
+        best(/^gemini-(\d+(?:\.\d+)?)-flash-lite$/) ||
+        fallback.fast,
     };
   })();
   return geminiModels;
+}
+
+/** Gemini 3 Flash models think by default; low thinking keeps latency demo-friendly. Lite models don't need it. */
+function thinking(model: string) {
+  return /^gemini-3/.test(model) && !/lite/.test(model) ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {};
 }
 
 /** Google Search grounding returns vertexaisearch redirect links; resolve them to the real page URL. */
@@ -105,7 +132,7 @@ async function geminiResearch(opts: ResearchOptions): Promise<ResearchOutput> {
     const stream = await geminiClient().models.generateContentStream({
       model,
       contents: opts.prompt,
-      config: { systemInstruction: opts.system, tools: [{ googleSearch: {} }], temperature: 0.2 },
+      config: { systemInstruction: opts.system, tools: [{ googleSearch: {} }], temperature: 0.2, ...thinking(model) },
     });
     for await (const chunk of stream) {
       text += chunk.text ?? "";
@@ -178,7 +205,43 @@ function extractJson(text: string): unknown {
 
 async function geminiStructured<T>(opts: StructuredOptions<T>): Promise<T> {
   const { main, fast } = await pickGeminiModels();
-  const model = opts.fast ? fast : main;
+  const primary = opts.fast ? fast : main;
+  try {
+    return await geminiStructuredWith(primary, opts);
+  } catch (e) {
+    const backup = primary === main ? fast : main;
+    if (!isOverloaded(e) || backup === primary) throw e;
+    console.warn(`[llm] ${opts.name}: ${primary} overloaded, falling back to ${backup}`);
+    return geminiStructuredWith(backup, opts);
+  }
+}
+
+const isOverloaded = (e: unknown) =>
+  [429, 500, 503].includes((e as { status?: number }).status ?? 0) || /Incomplete JSON segment|fetch failed/i.test((e as Error).message ?? "");
+
+async function geminiGenerate(opts: GenerateOptions): Promise<string> {
+  const { main, fast } = await pickGeminiModels();
+  const run = (model: string) =>
+    withRetry(async () => {
+      const res = await geminiClient().models.generateContent({
+        model,
+        contents: opts.user,
+        config: { systemInstruction: opts.system, maxOutputTokens: opts.maxOutputTokens ?? 8192, temperature: 0.2, ...thinking(model) },
+      });
+      return res.text ?? "";
+    }, "generate");
+  const primary = opts.fast ? fast : main;
+  try {
+    return await run(primary);
+  } catch (e) {
+    const backup = primary === main ? fast : main;
+    if (!isOverloaded(e) || backup === primary) throw e;
+    console.warn(`[llm] generate: ${primary} overloaded, falling back to ${backup}`);
+    return run(backup);
+  }
+}
+
+async function geminiStructuredWith<T>(model: string, opts: StructuredOptions<T>): Promise<T> {
   const schemaJson = toGeminiSchema(opts.schema);
   let useSchemaParam = true;
   let feedback = "";
@@ -200,6 +263,7 @@ async function geminiStructured<T>(opts: StructuredOptions<T>): Promise<T> {
             ...(useSchemaParam ? { responseJsonSchema: schemaJson } : {}),
             maxOutputTokens: opts.maxOutputTokens ?? 32_768,
             temperature: 0.2,
+            ...thinking(model),
           },
         });
         for await (const chunk of stream) {
@@ -293,10 +357,24 @@ async function openaiStructured<T>(opts: StructuredOptions<T>): Promise<T> {
   return opts.schema.parse(JSON.parse(response.output_text));
 }
 
+async function openaiGenerate(opts: GenerateOptions): Promise<string> {
+  const model = opts.fast ? openaiModels().fast : openaiModels().main;
+  const res = await oa().responses.create({
+    model,
+    ...reasoning(model),
+    input: [
+      { role: "system", content: opts.system },
+      { role: "user", content: opts.user },
+    ],
+  });
+  return res.output_text;
+}
+
 // ───────────────────────── Public API ─────────────────────────
 
 export type ResearchOptions = { system: string; prompt: string; fast?: boolean; onAction?: (message: string) => void };
 export type ResearchOutput = { text: string; citations: Citation[]; model: string };
+export type GenerateOptions = { system: string; user: string; fast?: boolean; maxOutputTokens?: number };
 export type StructuredOptions<T> = {
   system: string;
   user: string;
@@ -315,11 +393,16 @@ export function structured<T>(opts: StructuredOptions<T>): Promise<T> {
   return requireProvider() === "gemini" ? geminiStructured(opts) : openaiStructured(opts);
 }
 
+export function generate(opts: GenerateOptions): Promise<string> {
+  return requireProvider() === "gemini" ? geminiGenerate(opts) : openaiGenerate(opts);
+}
+
 export async function modelLabel(): Promise<string> {
   const p = requireProvider();
   if (p === "gemini") {
     const m = await pickGeminiModels();
-    return `${m.main} + ${m.fast} (Gemini, Google Search grounding)`;
+    const search = nativeSearch() ? "Google Search grounding" : `agent search via ${process.env.TAVILY_API_KEY ? "Tavily" : "DuckDuckGo"}`;
+    return `${m.main} + ${m.fast} (Gemini, ${search})`;
   }
   const m = openaiModels();
   return `${m.main} + ${m.fast} (OpenAI, web_search)`;

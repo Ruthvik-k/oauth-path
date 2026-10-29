@@ -27,7 +27,7 @@ Live demo: _<add Vercel URL>_ · Verification report: `/verification`
 
 ```
 query ──► resolve (library match or web lookup + Composio managed-auth status)
-      ──► research ×3 in parallel (Gemini + Google Search grounding, or OpenAI Responses API + web_search)
+      ──► research ×3 in parallel (Gemini: plan queries → search → read pages → cited notes; or OpenAI web_search)
             registration & build │ approval & go-live │ permissions & pitfalls
       ──► write (structured output against a Zod schema; may cite only URLs the researchers actually saw)
       ──► probe (deterministic code)        ┐ in parallel
@@ -36,7 +36,9 @@ query ──► resolve (library match or web lookup + Composio managed-auth sta
 ```
 
 - **Evidence hygiene in code, not prompts.** After writing, any source URL that never appeared in the research is removed, dangling citations are stripped, and claims left without support become *Inferred*. An agent-written guide can never say *Tested*. URLs a model writes into its notes (rather than ones its search tool returned) are kept only if they actually load.
-- **Two model providers behind one interface** ([`llm.ts`](src/lib/agent/llm.ts)): Google Gemini on the free tier (Google Search grounding; each grounded sentence is tagged with the real source URL) or OpenAI. The app uses whichever key is set.
+- **Two model providers behind one interface** ([`llm.ts`](src/lib/agent/llm.ts)): Google Gemini on the free tier, or OpenAI. The app uses whichever key is set.
+- **Agent search loop on Gemini.** On our free Gemini project, Google Search grounding had zero quota (every grounded call returned 429), so the agent does its own research: the model plans queries → [`search.ts`](src/lib/agent/search.ts) runs them (Tavily if `TAVILY_API_KEY` is set, otherwise keyless DuckDuckGo) → pages are fetched and read → the model writes notes citing only pages it actually read. If search is throttled, the model proposes known official doc URLs and only pages that load are used.
+- **Picked for speed.** Benchmarked on the same research prompt: `gemini-3.8-flash` took about 150 s, `gemini-3.5-flash` (low thinking) about 9 s, `gemini-3.5-flash-lite` about 2 s. The agent prefers 3.5 Flash / Flash-Lite and falls back to the other model when one is overloaded (HTTP 503). A full guide takes about 1 minute.
 - **Probes need no account.** They call the documented authorize endpoint with a fake `client_id` to confirm it's live and rejects unknown clients, look for OAuth/OIDC discovery metadata (and PKCE support), and check the developer portal and every cited link.
 - **Fact-check.** For the 6 claims a developer would act on (production requirements, high-impact nuances, go-live steps, gated scopes), a second model re-reads the cited page. Unsupported claims are downgraded and added to "Still uncertain".
 - The UI streams every search, page read, probe and verdict as it happens (NDJSON over a single POST).
@@ -86,7 +88,7 @@ Environment variables (see `.env.example`): `GEMINI_API_KEY` (free) or `OPENAI_A
 ## Deploy (Vercel, free Hobby plan)
 
 1. Import the repo in Vercel (framework: Next.js).
-2. Add `GEMINI_API_KEY` (or `OPENAI_API_KEY`) under Settings → Environment Variables.
+2. Add `GEMINI_API_KEY` (or `OPENAI_API_KEY`) under Settings → Environment Variables, plus `TAVILY_API_KEY` (free) so search works reliably from Vercel's servers.
 3. Storage → create a **Blob** store and connect it to the project. This sets `BLOB_READ_WRITE_TOKEN`, so generated guides persist and share across instances.
 4. Deploy. The generate route sets `maxDuration = 300`.
 
@@ -109,6 +111,8 @@ docs/                       manual verification checklist
 - **Provider rules change.** Guides carry a "last checked" date. Curated guides need periodic re-verification; the probe script and agent baselines make that cheap but not automatic.
 - **Hands-on attempts stop where free accounts stop.** We did not pay for a CASA assessment, pass Meta Business Verification, or get accepted into a LinkedIn partner program, so those steps rest on official docs and labelled community reports.
 - **Agent guides are only as good as public docs.** JavaScript-heavy or bot-blocking docs (some Meta and Zoom pages) can't be re-read by the fact-checker; those claims are marked as not re-readable.
+- **Keyless search is fragile.** DuckDuckGo throttled us after a few bursts of queries and then blocked us for a while (Bing's keyless results were unusable). The crawler fallback still produces a sourced guide, but a thinner one. Set `TAVILY_API_KEY` (free) for consistent results.
+- **Name collisions.** One run for "Harvest" (time tracking) pulled in a page about Greenhouse's unrelated "Harvest" API. Ranking prefers the provider's own domain, but a reader should check the Sources list on agent-generated guides.
 - **Timelines are ranges, not promises.** Community-reported durations are anecdotes and are labelled that way.
 - **Abuse protection is minimal:** a per-instance, in-memory rate limit on live generation, and reruns are cached by slug. A production version would add auth, a durable rate limit and a job queue.
 - **No credentials are stored** and the app never asks for provider secrets.
