@@ -15,7 +15,7 @@ export function researchSystemPrompt(app: ResolvedApp) {
 Use web search. Prefer the provider's official developer documentation, policy pages and changelogs. Use community sources (forums, Stack Overflow, GitHub issues, blogs) only for real-world timelines and pitfalls, and label them.
 Today is ${today()}. Prefer current information and say when something changed recently.
 
-Output concise factual bullet points. EVERY bullet must end with the supporting source URL in parentheses and a label [official] or [community]. If something is undocumented or unclear, write a bullet starting with "UNCLEAR:". Never invent URLs, numbers or timelines.`;
+Output concise factual bullet points. End every bullet with the label [official] or [community], and include the source URL in parentheses when you have it. If something is undocumented or unclear, write a bullet starting with "UNCLEAR:". Never invent URLs, numbers or timelines.`;
 }
 
 export const RESEARCH_TRACKS: { id: TrackId; label: string; prompt: (app: ResolvedApp) => string }[] = [

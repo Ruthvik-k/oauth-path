@@ -27,7 +27,7 @@ Live demo: _<add Vercel URL>_ · Verification report: `/verification`
 
 ```
 query ──► resolve (library match or web lookup + Composio managed-auth status)
-      ──► research ×3 in parallel (OpenAI Responses API + web_search)
+      ──► research ×3 in parallel (Gemini + Google Search grounding, or OpenAI Responses API + web_search)
             registration & build │ approval & go-live │ permissions & pitfalls
       ──► write (structured output against a Zod schema; may cite only URLs the researchers actually saw)
       ──► probe (deterministic code)        ┐ in parallel
@@ -35,7 +35,8 @@ query ──► resolve (library match or web lookup + Composio managed-auth sta
       ──► publish (shareable URL; Vercel Blob or local disk)
 ```
 
-- **Evidence hygiene in code, not prompts.** After writing, any source URL that never appeared in the research is removed, dangling citations are stripped, and claims left without support become *Inferred*. An agent-written guide can never say *Tested*.
+- **Evidence hygiene in code, not prompts.** After writing, any source URL that never appeared in the research is removed, dangling citations are stripped, and claims left without support become *Inferred*. An agent-written guide can never say *Tested*. URLs a model writes into its notes (rather than ones its search tool returned) are kept only if they actually load.
+- **Two model providers behind one interface** ([`llm.ts`](src/lib/agent/llm.ts)): Google Gemini on the free tier (Google Search grounding; each grounded sentence is tagged with the real source URL) or OpenAI. The app uses whichever key is set.
 - **Probes need no account.** They call the documented authorize endpoint with a fake `client_id` to confirm it's live and rejects unknown clients, look for OAuth/OIDC discovery metadata (and PKCE support), and check the developer portal and every cited link.
 - **Fact-check.** For the 6 claims a developer would act on (production requirements, high-impact nuances, go-live steps, gated scopes), a second model re-reads the cited page. Unsupported claims are downgraded and added to "Still uncertain".
 - The UI streams every search, page read, probe and verdict as it happens (NDJSON over a single POST).
@@ -64,11 +65,11 @@ Requirements: Node.js 20.9+ (tested on 26).
 
 ```bash
 npm install
-cp .env.example .env.local      # then set OPENAI_API_KEY
+cp .env.example .env.local      # then set GEMINI_API_KEY (free: https://aistudio.google.com/apikey) or OPENAI_API_KEY
 npm run dev                     # http://localhost:3000
 ```
 
-Without `OPENAI_API_KEY` everything except live generation works.
+Without a model key everything except live generation works.
 
 Useful scripts:
 
@@ -80,12 +81,12 @@ npx tsx scripts/probe-curated.ts          # re-run live probes for curated guide
 npm run registry                          # rebuild guide registries after adding JSON files
 ```
 
-Environment variables (see `.env.example`): `OPENAI_API_KEY` (required for generation), `OPENAI_MODEL` / `OPENAI_FAST_MODEL` (defaults `gpt-5.4` / `gpt-5.4-mini`), `BLOB_READ_WRITE_TOKEN` (durable storage on Vercel), `GENERATE_LIMIT_PER_HOUR`.
+Environment variables (see `.env.example`): `GEMINI_API_KEY` (free) or `OPENAI_API_KEY` (needed only for live generation), `LLM_PROVIDER` to force one when both are set, optional model overrides (`GEMINI_MODEL`, `GEMINI_FAST_MODEL`, `OPENAI_MODEL`, `OPENAI_FAST_MODEL`; by default the newest Gemini Flash / Flash-Lite are picked), `BLOB_READ_WRITE_TOKEN` (durable storage on Vercel), `GENERATE_LIMIT_PER_HOUR`.
 
-## Deploy (Vercel)
+## Deploy (Vercel, free Hobby plan)
 
 1. Import the repo in Vercel (framework: Next.js).
-2. Add `OPENAI_API_KEY` under Settings → Environment Variables.
+2. Add `GEMINI_API_KEY` (or `OPENAI_API_KEY`) under Settings → Environment Variables.
 3. Storage → create a **Blob** store and connect it to the project. This sets `BLOB_READ_WRITE_TOKEN`, so generated guides persist and share across instances.
 4. Deploy. The generate route sets `maxDuration = 300`.
 

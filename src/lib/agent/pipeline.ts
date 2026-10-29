@@ -1,11 +1,10 @@
 import { z } from "zod";
-import { zodTextFormat } from "openai/helpers/zod";
 import { findCatalogApp, slugify } from "../catalog";
 import { lookupComposio, type ComposioStatus } from "../composio";
 import { GuideContentSchema, type Confidence, type Guide, type GuideContent } from "../guide-schema";
 import { getCuratedGuide, getGeneratedGuide, saveGeneratedGuide } from "../store";
 import type { Emit } from "./events";
-import { FAST_MODEL, MODEL, openai, reasoning } from "./openai";
+import { modelLabel, provider, structured, webResearch } from "./llm";
 import { runProbes } from "./probes";
 import { RESOLVE_SYSTEM, synthesisSystemPrompt, type ResolvedApp } from "./prompts";
 import { research, type ResearchResult } from "./research";
@@ -41,18 +40,21 @@ async function resolveApp(query: string, emit: Emit): Promise<{ app: ResolvedApp
     };
   }
   emit({ type: "log", stage: "resolve", message: `“${query}” is not in the library. Looking it up on the web…` });
-  const res = await openai().responses.parse({
-    model: FAST_MODEL,
-    ...reasoning(FAST_MODEL, "low"),
-    tools: [{ type: "web_search", search_context_size: "low" }],
-    input: [
-      { role: "system", content: RESOLVE_SYSTEM },
-      { role: "user", content: `The developer typed: "${query}"` },
-    ],
-    text: { format: zodTextFormat(ResolveSchema, "resolved_app") },
+  if (!provider()) throw new Error(`“${query}” isn't in the library, and live generation isn't configured on this server (no GEMINI_API_KEY or OPENAI_API_KEY).`);
+  const found = await webResearch({
+    fast: true,
+    system: RESOLVE_SYSTEM,
+    prompt: `The developer typed: "${query}". Identify the product, its official website, what it does, and whether it offers OAuth 2.0 for third-party developers (name the developer docs page if you find it).`,
   });
-  const r = res.output_parsed;
-  if (!r || !r.recognized || !r.name.trim()) {
+  const r = await structured({
+    fast: true,
+    name: "resolved_app",
+    schema: ResolveSchema,
+    system: RESOLVE_SYSTEM,
+    user: `The developer typed: "${query}"\n\nWeb findings:\n${found.text}\n\nReturn the identification as JSON.`,
+    maxOutputTokens: 2048,
+  });
+  if (!r.recognized || !r.name.trim()) {
     throw new Error(`Couldn't identify an app called “${query}”. Try its full name or website.`);
   }
   emit({
@@ -105,28 +107,19 @@ async function synthesize(
     ...notes.flatMap((n) => [`=== RESEARCH NOTES: ${n.label} ===`, n.notes, ""]),
   ].join("\n");
 
-  const stream = openai().responses.stream({
-    model: MODEL,
-    ...reasoning(MODEL, "low"),
-    input: [
-      { role: "system", content: synthesisSystemPrompt() },
-      { role: "user", content: userPrompt },
-    ],
-    text: { format: zodTextFormat(GuideContentSchema, "oauth_setup_guide") },
-  });
-  let chars = 0;
   let lastEmit = 0;
-  for await (const event of stream) {
-    if (event.type === "response.output_text.delta") {
-      chars += event.delta.length;
-      if (Date.now() - lastEmit > 1500) {
-        lastEmit = Date.now();
-        emit({ type: "progress", stage: "synthesize", message: `Writing… ${Math.round(chars / 1000)}k characters` });
-      }
-    }
-  }
-  const response = await stream.finalResponse();
-  return GuideContentSchema.parse(JSON.parse(response.output_text));
+  return structured({
+    name: "oauth_setup_guide",
+    schema: GuideContentSchema,
+    system: synthesisSystemPrompt(),
+    user: userPrompt,
+    maxOutputTokens: 65_536,
+    onProgress: (chars) => {
+      if (Date.now() - lastEmit < 1500) return;
+      lastEmit = Date.now();
+      emit({ type: "progress", stage: "synthesize", message: `Writing… ${Math.round(chars / 1000)}k characters` });
+    },
+  });
 }
 
 /**
@@ -195,7 +188,7 @@ export async function buildGuide({ app, slug, query, composio }: BuildInput, emi
     origin: "generated",
     createdAt: now,
     lastCheckedAt: now,
-    model: MODEL,
+    model: await modelLabel(),
     query,
     composio,
     verification: {
@@ -236,8 +229,8 @@ export async function generateGuide(rawQuery: string, emit: Emit, opts: { force?
     emit({ type: "done", slug, cached: true, name: app.name });
     return slug;
   }
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error(`There's no guide for ${app.name} yet, and live generation isn't configured on this server (OPENAI_API_KEY is missing).`);
+  if (!provider()) {
+    throw new Error(`There's no guide for ${app.name} yet, and live generation isn't configured on this server (no GEMINI_API_KEY or OPENAI_API_KEY).`);
   }
   const composio = await lookupComposio(composioNames);
   emit({ type: "log", stage: "resolve", message: composio.note });

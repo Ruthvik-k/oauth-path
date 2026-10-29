@@ -12,6 +12,7 @@
     "registry": "tsx scripts/build-registry.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.30.0",
     "@vercel/blob": "^2.8.2",
     "next": "16.5.0-canary.21",
     "openai": "^7.41.0",

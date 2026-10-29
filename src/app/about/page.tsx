@@ -101,7 +101,8 @@ export default function AboutPage() {
           </li>
           <li>
             <strong>Research (3 agents in parallel).</strong> One covers registration and build details, one covers approval and go-live,
-            one covers permissions and pitfalls. They search, read official docs first, and must attach a URL to every fact.
+            one covers permissions and pitfalls. They search the web (Gemini with Google Search grounding, or OpenAI web search), read
+            official docs first, and tie each fact to the page it came from.
           </li>
           <li>
             <strong>Write.</strong> A writer turns the notes into a fixed structure: summary, phases and steps, who does each step,
