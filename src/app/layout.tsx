@@ -18,11 +18,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans">
         <header className="border-b border-slate-200 bg-white">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-slate-900">
+            <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap font-semibold tracking-tight text-slate-900">
               <span className="grid h-7 w-7 place-items-center rounded-md bg-indigo-600 text-sm text-white">⇢</span>
               OAuth Path
             </Link>
-            <nav className="flex items-center gap-1 text-sm text-slate-600">
+            <nav className="flex items-center gap-0.5 whitespace-nowrap text-sm text-slate-600 sm:gap-1">
               <Link href="/#library" className="rounded px-2 py-1 hover:bg-slate-100 hover:text-slate-900">
                 Library
               </Link>

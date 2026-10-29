@@ -980,15 +980,15 @@
       },
       {
         "name": "OAuth/OIDC discovery metadata",
-        "target": "https://www.linkedin.com/oauth/v2/authorization/.well-known/openid-configuration",
-        "ok": false,
-        "result": "No discovery document found. Common for OAuth-only providers; take endpoints from the docs."
+        "target": "https://www.linkedin.com/oauth/.well-known/openid-configuration",
+        "ok": true,
+        "result": "Found. authorization_endpoint=https://www.linkedin.com/oauth/v2/authorization; PKCE methods not advertised; 3 scopes advertised."
       },
       {
         "name": "Cited source links",
-        "target": "24 sources",
+        "target": "27 sources",
         "ok": true,
-        "result": "24/24 cited pages load."
+        "result": "27/27 cited pages load."
       }
     ],
     "claimChecks": [],

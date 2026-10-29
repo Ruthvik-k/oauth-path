@@ -1041,15 +1041,15 @@
       },
       {
         "name": "OAuth/OIDC discovery metadata",
-        "target": "https://login.microsoftonline.com/common/.well-known/openid-configuration",
+        "target": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
         "ok": true,
-        "result": "Found. authorization_endpoint=https://login.microsoftonline.com/common/oauth2/authorize; PKCE methods not advertised; 1 scopes advertised."
+        "result": "Found. authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize; PKCE methods not advertised; 4 scopes advertised."
       },
       {
         "name": "Cited source links",
-        "target": "24 sources",
+        "target": "40 sources",
         "ok": true,
-        "result": "24/24 cited pages load."
+        "result": "40/40 cited pages load."
       }
     ],
     "claimChecks": [],

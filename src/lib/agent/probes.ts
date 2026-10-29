@@ -77,15 +77,19 @@ async function probeDiscovery(endpoint: string): Promise<ProbeResult> {
   } catch {
     return { name: "OAuth/OIDC discovery metadata", target: endpoint, ok: false, result: "No valid endpoint to derive from" };
   }
-  const prefix = url.pathname.replace(/\/(oauth2?\/)?(v\d(\.\d)?\/)?authori[sz]e.*$/i, "").replace(/\/$/, "");
+  const prefix = url.pathname.replace(/\/(oauth2?\/)?(v\d(\.\d)?\/)?authori[sz](e|ation).*$/i, "").replace(/\/$/, "");
+  const segments = url.pathname.split("/").filter(Boolean).slice(0, -1);
+  const ancestors: string[] = [];
+  for (let i = segments.length; i >= 0; i--) ancestors.push(segments.slice(0, i).map((s) => `/${s}`).join(""));
   const candidates = Array.from(
     new Set([
       `${url.origin}${prefix}/v2.0/.well-known/openid-configuration`,
-      `${url.origin}${prefix}/.well-known/openid-configuration`,
-      `${url.origin}/.well-known/openid-configuration`,
+      ...ancestors.map((a) => `${url.origin}${a}/.well-known/openid-configuration`),
       `${url.origin}/.well-known/oauth-authorization-server`,
     ]),
   );
+  const comparable = (u: URL) => `${u.host.replace(/^www\./, "")}${u.pathname.replace(/\/v\d+(\.\d+)?(?=\/)/g, "").replace(/\/$/, "")}`;
+  const documented = comparable(url);
   for (const candidate of candidates) {
     try {
       const res = await fetchWithTimeout(candidate, { headers: { accept: "application/json" } }, 6_000);
@@ -96,11 +100,20 @@ async function probeDiscovery(endpoint: string): Promise<ProbeResult> {
         ? `PKCE: ${(meta.code_challenge_methods_supported as string[]).join(", ")}`
         : "PKCE methods not advertised";
       const scopes = Array.isArray(meta.scopes_supported) ? `${(meta.scopes_supported as string[]).length} scopes advertised` : "scopes not advertised";
+      let differs = "";
+      try {
+        const found = new URL(meta.authorization_endpoint);
+        if (comparable(found) !== documented)
+          differs =
+            " Note: this differs from the documented authorize endpoint. The provider likely uses a separate endpoint for OpenID sign-in, so use the documented one for app authorization.";
+      } catch {
+        // ignore malformed metadata
+      }
       return {
         name: "OAuth/OIDC discovery metadata",
         target: candidate,
         ok: true,
-        result: `Found. authorization_endpoint=${meta.authorization_endpoint}; ${pkce}; ${scopes}.`,
+        result: `Found. authorization_endpoint=${meta.authorization_endpoint}; ${pkce}; ${scopes}.${differs}`,
       };
     } catch {
       // try next candidate

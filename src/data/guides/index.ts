@@ -4,6 +4,7 @@ import g_google_workspace from "./google-workspace.json";
 import g_linkedin from "./linkedin.json";
 import g_meta from "./meta.json";
 import g_microsoft_365 from "./microsoft-365.json";
+import g_slack from "./slack.json";
 import g_zoom from "./zoom.json";
 
 // Curated guides are hand-checked against official sources and real setup attempts.
@@ -14,5 +15,6 @@ export const curatedGuides: Record<string, Guide> = {
   "linkedin": g_linkedin as unknown as Guide,
   "meta": g_meta as unknown as Guide,
   "microsoft-365": g_microsoft_365 as unknown as Guide,
+  "slack": g_slack as unknown as Guide,
   "zoom": g_zoom as unknown as Guide,
 };

@@ -33,15 +33,15 @@
       },
       {
         "name": "OAuth/OIDC discovery metadata",
-        "target": "https://github.com/login/.well-known/openid-configuration",
-        "ok": false,
-        "result": "No discovery document found. Common for OAuth-only providers; take endpoints from the docs."
+        "target": "https://github.com/login/oauth/.well-known/openid-configuration",
+        "ok": true,
+        "result": "Found. authorization_endpoint=https://github.com/login/oauth/authorize; PKCE methods not advertised; 2 scopes advertised."
       },
       {
         "name": "Cited source links",
-        "target": "24 sources",
+        "target": "25 sources",
         "ok": true,
-        "result": "24/24 cited pages load."
+        "result": "25/25 cited pages load."
       }
     ],
     "claimChecks": [],
