@@ -1,0 +1,1014 @@
+{
+  "slug": "zoom",
+  "origin": "curated",
+  "createdAt": "2026-10-29T00:00:00.000Z",
+  "lastCheckedAt": "2026-10-29T00:00:00.000Z",
+  "model": null,
+  "query": null,
+  "app": {
+    "name": "Zoom",
+    "website": "https://zoom.us",
+    "category": "Video conferencing & meetings",
+    "developerPortalUrl": "https://marketplace.zoom.us/",
+    "docsUrl": "https://developers.zoom.us/docs/integrations/oauth/",
+    "authorizationEndpoint": "https://zoom.us/oauth/authorize"
+  },
+  "verdict": {
+    "headline": "Your own Zoom General app connects your own Zoom account in under an hour, but users from other Zoom accounts can only connect after Marketplace review (operations plus security, even if the app is unlisted), so budget roughly 3–8 weeks.",
+    "difficulty": 4,
+    "approvalTier": "review_required",
+    "timeToFirstConnection": "30–60 minutes hands-on, no provider wait: create a General app, set an HTTPS redirect URL and OAuth allow list, add scopes, then Development > Local Test > Add App Now on your own account. The only common delay is getting the 'Zoom for developers' role if you aren't the account owner or an admin.",
+    "timeToFirstConnectionShort": "30–60 min",
+    "timeToProduction": "About 3–8 weeks for typical agent scopes (meetings, user profile, recordings/transcripts) — an estimate: 1–2 weeks of your own prep, then Zoom's two-phase review, where each submission gets a response within 5 business days and every remediation round adds roughly 1–2 more weeks. Few, clearly described user-level scopes shorten review; recording, transcript and :admin scopes lengthen it. Cheaper paths: an internal app ('Users within my Zoom account') needs no review, or use Composio's managed Zoom app.",
+    "timeToProductionShort": "3–8 weeks",
+    "handsOnEffort": "About 1 hour to first connection. Roughly 3–7 working days to be review-ready (estimate): Privacy Policy, Terms, Support and Documentation pages on your own domain, Technical Design answers, a description for every scope, a deauthorization webhook, domain verification, a test plan with test accounts, then a few hours per remediation round. Add 1–3 days if you want an external beta (SSDLC document, SAST/DAST scanner output, 3 of 5 security policies).",
+    "cost": "Zoom's docs list no fee to create or publish an app. A developer on a free Zoom account must upgrade to 'Free with Credit Card' or submit Zoom's developer information form before publishing. Testing recording and transcript features needs a Pro or higher plan with Cloud Recording on, and AI Companion summaries need a Pro, Business or higher plan; Priority Review comes with the paid Premier Developer Support Plan (Gold tier), whose price isn't in the evidence.",
+    "biggestRisk": "Repeated review rounds over scopes: Zoom's security team tests every scope you request and can make you remove ones it sees as unnecessary, and recording, transcript and :admin scopes draw the most scrutiny. Adding a new scope after launch sends the app back through review before it works in production."
+  },
+  "ownAppDecision": {
+    "summary": "For prototypes, demos and internal tools, Composio's managed Zoom app (toolkit ZOOM) is enough and skips Zoom's review entirely. Build your own General app when customers outside your company will connect their Zoom accounts under your name, when you need scopes or webhooks the managed app doesn't give you, or when enterprise customers' Zoom admins must pre-approve your app specifically. If every user is on your own Zoom account, your own app set to 'Users within my Zoom account' needs no Marketplace review.",
+    "reasons": [
+      "Branding: the consent screen, the Marketplace listing, users' Added Apps page and the in-meeting Active Apps Notifier show the app's name, so with a managed app your users see someone else's app.",
+      "Scope control: you choose exactly which granular scopes to request (for example cloud_recording:read:meeting_transcript or meeting:read:summary) and justify them yourself in review.",
+      "Webhooks: event subscriptions and the app_deauthorized notification are configured per app and delivered to that app's endpoint, so you need your own app to receive meeting, recording or uninstall events on your servers.",
+      "Enterprise and compliance: customer Zoom admins can require pre-approval of each app and approve apps by name; security teams usually want to approve your app and your data-handling terms, not a middleman's.",
+      "Rate limits are NOT a reason on Zoom: limits are applied per customer Zoom account and shared by all apps installed on it, so your own app doesn't get a separate quota.",
+      "Free internal option: if only users in your own Zoom account need access, your own General app limited to 'Users within my Zoom account' avoids the standard Marketplace review."
+    ]
+  },
+  "phases": [
+    {
+      "id": "prepare",
+      "name": "Prepare",
+      "goal": "You have developer access, a chosen app type and distribution path, and legal and support pages live on a domain you own.",
+      "duration": "1–3 days, mostly hands-on",
+      "steps": [
+        {
+          "title": "Get Zoom developer permissions",
+          "detail": "Use a Zoom account where you are the owner or an admin, or have an admin enable the 'Zoom for developers' role (Zoom web portal: User Management > Roles > Role Settings > Advanced features > check View and Edit for 'Zoom for developers'). The Marketplace at https://marketplace.zoom.us/ only shows the 'Developer' link in the lower-left navigation once it detects these permissions.",
+          "owner": "you",
+          "agentHelp": "Draft the request to your Zoom admin naming the exact role and settings path.",
+          "time": "5 min (longer if you wait on an admin)",
+          "sourceIds": [
+            "s1"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Decide whether you need your own app",
+          "detail": "Composio offers a managed OAuth app for Zoom (toolkit slug ZOOM), which is enough for prototypes and internal tools. Build your own General app if users should see your brand, you need your own scope set, or you need webhooks such as app_deauthorized delivered to your servers.",
+          "owner": "you",
+          "agentHelp": "Compare the Zoom actions your agent needs with the Composio ZOOM toolkit's tools and triggers and list any gaps.",
+          "time": "30 min",
+          "sourceIds": [
+            "s27",
+            "s12"
+          ],
+          "confidence": "inferred"
+        },
+        {
+          "title": "Pick the distribution path",
+          "detail": "An app limited to 'Users within my Zoom account' needs no standard Marketplace review, but only your own account's users can add it. Users in other Zoom accounts need either an approved beta authorization URL (capped installs, 90 days maximum) or a published app; 'Unlisted' hides a published app from Marketplace search but it still goes through the full review.",
+          "owner": "you",
+          "agentHelp": "Map your launch plan (internal pilot, external beta, public) to the matching Zoom path and list the artifacts each one requires.",
+          "time": "15 min",
+          "sourceIds": [
+            "s6",
+            "s4",
+            "s5",
+            "s9"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Choose General app and the management type",
+          "detail": "Use a General app: Server-to-Server OAuth only gets tokens for your own Zoom account, and developers report that cloud_recording scopes aren't offered to S2S apps. Choose User-managed if each user connects only their own meetings and recordings (call endpoints with userId 'me'). Choose Admin-managed only if you need account-wide :admin scopes, which only users with matching admin role permissions can authorize.",
+          "owner": "agent",
+          "agentHelp": "List every Zoom endpoint your agent will call, check its user-level and :admin granular scopes in the API reference, and recommend the management type.",
+          "time": "30 min",
+          "sourceIds": [
+            "s1",
+            "s2",
+            "s12",
+            "s20",
+            "s25"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Host legal and support pages on your own domain",
+          "detail": "Publish a Privacy Policy, Terms of Use, a Support page (hours, first-response SLA, contact links) and user documentation (how to add, use and remove the app) on an HTTPS domain your company owns. Links to Google Drive or Dropbox are rejected; Atlassian or Coda are accepted only on a custom subdomain with your branding.",
+          "owner": "agent",
+          "agentHelp": "Draft all four pages from your actual data flows, including the 'Removing the app' steps (Manage > Added Apps > Remove) and what happens to user data; have a human review the legal text.",
+          "time": "1–2 days",
+          "sourceIds": [
+            "s6",
+            "s7"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Clear the free-account compliance check",
+          "detail": "If your developer account is on Zoom's free plan, upgrade it to 'Free with Credit Card' or submit Zoom's developer information form before you publish. Zoom requires this to confirm you aren't subject to active U.S. sanctions.",
+          "owner": "you",
+          "agentHelp": "Prepare the company and contact details the developer information form asks for.",
+          "time": "10 min",
+          "sourceIds": [
+            "s7"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "name": "Build and test on your own account",
+      "goal": "Your agent completes OAuth against your own Zoom account with development credentials and successfully calls every endpoint it needs.",
+      "duration": "1–3 days",
+      "steps": [
+        {
+          "title": "Create the General app",
+          "detail": "At https://marketplace.zoom.us/ click Developer (lower-left) > Created apps > Develop > Build an app, select 'General app' and click Create. On Basic Info, rename the app with the pencil icon and confirm 'Select how the app is managed'; changing the management type later changes which features and scopes are available.",
+          "owner": "you",
+          "agentHelp": "With browser access to your signed-in session, click through the flow and put the generated Client IDs and secrets into your secret store.",
+          "time": "5 min",
+          "sourceIds": [
+            "s1"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Configure the redirect URL and OAuth allow list",
+          "detail": "Under OAuth Information set 'OAuth redirect URL' (required), optionally turn on 'Use Strict Mode URL' and 'Subdomain check', and add each redirect URL to 'OAuth allow lists' (required). For anything you submit, use HTTPS fully-qualified domains: no localhost, no ngrok unless you can prove ownership, no default *.herokuapp.com domains. Copy both the development and the production Client ID/Secret pairs, because they differ.",
+          "owner": "agent",
+          "agentHelp": "Check every URL against Zoom's rules and generate separate dev and prod environment configs.",
+          "time": "10 min",
+          "sourceIds": [
+            "s1",
+            "s3"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Add granular scopes with justifications",
+          "detail": "On the Scopes page click Add Scopes, pick the product (for example Meetings), check the scopes, click Done, and fill in 'Scope Description' for each one. Each scope is a request to Zoom's Security Review team, which applies least privilege and can reject scopes it considers unnecessary. Take exact names from the 'Granular Scopes' line on each endpoint in the API reference, e.g. GET /users/{userId}/meetings needs meeting:read:list_meetings.",
+          "owner": "agent",
+          "agentHelp": "Generate the endpoint-to-scope table and draft a specific Scope Description for each scope (see the drafts below).",
+          "time": "30 min",
+          "sourceIds": [
+            "s1",
+            "s20",
+            "s21"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Implement the authorization code flow",
+          "detail": "Send users to https://zoom.us/oauth/authorize?response_type=code&client_id=CLIENT_ID&redirect_uri=REDIRECT_URI (plus a state value), then POST to https://zoom.us/oauth/token with a Basic header (base64 of client_id:client_secret) and grant_type=authorization_code, code and redirect_uri. Access tokens last 1 hour; refresh with grant_type=refresh_token and always save the new refresh token Zoom returns, since each one expires after 90 days. PKCE is supported for public clients, and POST https://zoom.us/oauth/revoke revokes tokens.",
+          "owner": "agent",
+          "agentHelp": "Write and unit-test the authorize redirect, callback, token store, refresh job and revoke call.",
+          "time": "2–4 hours",
+          "sourceIds": [
+            "s2"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Add event subscriptions and the deauthorization handler",
+          "detail": "In Features > Access copy the Secret Token and set up Event Subscription with your HTTPS endpoint, then verify every incoming notification with the secret token (the old verification token was deprecated in October 2023). On app_deauthorized, delete that user's tokens and Zoom data. Apps in development and private apps don't receive this event, so you can only fully test it after publishing.",
+          "owner": "agent",
+          "agentHelp": "Implement the webhook endpoint with signature verification, the deletion job and logging; prefer webhooks over polling, which Zoom's security guidance asks for.",
+          "time": "2–4 hours",
+          "sourceIds": [
+            "s1",
+            "s12",
+            "s3"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Test on your own account with Local Test",
+          "detail": "In the Development tab open Local Test and click Add App Now, then Allow, to authorize your own Zoom account. To let colleagues on the same Zoom account try it, use the Authorization URL section: Generate, then Copy. Users outside your Zoom account can't add the app this way.",
+          "owner": "you",
+          "agentHelp": "Run an end-to-end script against every endpoint after you authorize and report missing-scope errors such as code 4711.",
+          "time": "15 min",
+          "sourceIds": [
+            "s1",
+            "s4"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "go_live",
+      "name": "Submit for Marketplace review",
+      "goal": "Zoom approves the app (listed or unlisted) and any Zoom user outside your account can authorize it.",
+      "duration": "2–6 weeks, mostly waiting on review rounds (estimate)",
+      "steps": [
+        {
+          "title": "Complete the listing and Technical Design",
+          "detail": "In the Production tab fill in App Listing: a short description (max 150 characters), a long description, 2–3 gallery images at 1200 x 780 px, and the Links (Terms of Use, Privacy Policy, Support, Documentation). Complete the Technical Design section on your architecture, security controls and how you use data from each scope; any 'Yes' answer under Application Development needs supporting documents. Unlisted apps need the same metadata because it appears in the Active Apps Notifier and users' Added Apps page.",
+          "owner": "agent",
+          "agentHelp": "Draft both descriptions, the Technical Design answers and the list of supporting evidence for you to review and paste in.",
+          "time": "1–2 days",
+          "sourceIds": [
+            "s7",
+            "s3",
+            "s9",
+            "s19"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Verify domain ownership",
+          "detail": "Zoom runs a one-time check that you own the domains behind your Privacy Policy, Terms of Use, OAuth redirect, webhook and Home URLs. Verify with a DNS TXT record, an uploaded HTML file or a <meta> tag; manual approval by Zoom is the fallback.",
+          "owner": "you",
+          "agentHelp": "Generate the exact TXT record or meta tag placement and confirm it resolves publicly before you click verify.",
+          "time": "15 min plus DNS propagation",
+          "sourceIds": [
+            "s8"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Write the test plan and set up test accounts",
+          "detail": "Write step-by-step instructions covering authorization, each requested scope and every relevant feature, with login credentials for two different user roles if your service needs accounts. Link it (a document or a Loom video) in the Release Notes field of App Submission and put at least one test account in 'Test account and credentials'; it is required on every submission and resubmission. For a first ('Create') submission your environment must authorize with the Production Client ID.",
+          "owner": "agent",
+          "agentHelp": "Draft the test plan from your feature list (see the draft below) and check that the build reviewers will use is configured with the production Client ID.",
+          "time": "0.5–1 day",
+          "sourceIds": [
+            "s7",
+            "s8"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Optionally request a beta authorization URL",
+          "detail": "Only if you need external pilot users before approval: Production tab > Beta Test > Share App > Request to Share, after completing Technical Design and supplying SSDLC documentation, SAST and DAST scanner output (not written summaries), your Privacy Policy, 3 of 5 policy artifacts and TLS 1.2+. Zoom answers in 3–4 business days (its FAQ says 72 hours); an approved URL works for 4 weeks plus two 4-week extensions (90 days total), with standard caps of 10 account-level or 100 user-level additions. You don't need this URL for the Marketplace review itself.",
+          "owner": "you",
+          "agentHelp": "Run SAST/DAST scanners, export their reports, and draft the SSDLC, incident response and vulnerability management documents.",
+          "time": "1–3 days prep + 3–4 business days (waiting)",
+          "sourceIds": [
+            "s4",
+            "s5",
+            "s3",
+            "s7"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Submit and choose listed or unlisted",
+          "detail": "Submit the app for external Zoom users; choose 'Set my app as Unlisted' in App discoverability if you don't want it in Marketplace search. A listed app can't be hidden from search, but you can control who adds it by starting installs from a landing page behind your own login.",
+          "owner": "you",
+          "agentHelp": "Run a pre-submission checklist against Zoom's common rejection reasons (URL domains, test plan, Client ID, documentation, descriptions).",
+          "time": "30 min",
+          "sourceIds": [
+            "s6",
+            "s14",
+            "s9"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Wait for operations and security review",
+          "detail": "Marketplace Operations first reviews metadata, usability and compliance; then the Security team audits your Technical Design, checks scopes for least privilege and tests against the OWASP Top 10 (no load testing). Zoom responds to each submission within 5 business days, and security results come back as PASS, FAIL or WARNINGS, where zero FAILs counts as a pass. Fix every item in the remediation report and resubmit with the test plan; a Zoom-employee sponsor or the Premier Developer Support Gold plan can get you Priority Review.",
+          "owner": "provider",
+          "agentHelp": "Turn reviewer notes into a fix list, implement code fixes, and draft your replies and updated test plan.",
+          "time": "1–4+ weeks (waiting; each resubmission is another round)",
+          "sourceIds": [
+            "s6",
+            "s9",
+            "s10",
+            "s11",
+            "s23"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "maintain",
+      "name": "Maintain",
+      "goal": "Tokens stay valid, users can remove the app cleanly, scope changes go through review, and the app stays compliant.",
+      "duration": "Ongoing",
+      "steps": [
+        {
+          "title": "Keep refresh tokens alive",
+          "detail": "Each refresh returns a new refresh token and each one expires after 90 days, so store the new one atomically and drop the old one. If a user's token expires, send them back through https://zoom.us/oauth/authorize. An older Zoom doc said 15 years; Zoom staff confirmed 90 days is correct.",
+          "owner": "agent",
+          "agentHelp": "Build the rotation logic with locking, alert on refresh failures and add a reconnect prompt in your UI.",
+          "time": "1–2 hours to build",
+          "sourceIds": [
+            "s2",
+            "s22"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Honor deauthorization",
+          "detail": "When app_deauthorized arrives, delete the user's tokens and stored Zoom data and log the deletion. A Zoom staff reply on the developer forum says the old Data Compliance API (POST /oauth/data/compliance) is deprecated and you no longer need to call any endpoint to confirm deletion. Keep a re-authorization path for users who removed the app and come back.",
+          "owner": "agent",
+          "agentHelp": "Write the deletion job and an audit log entry per deauthorization event.",
+          "time": "1–2 hours",
+          "sourceIds": [
+            "s12",
+            "s24",
+            "s3"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Resubmit when you add scopes",
+          "detail": "Removing scopes, or migrating classic scopes to granular ones, needs no re-review; adding a new granular scope does, and it won't take effect in Production until approved. Update submissions are tested with the Development Client ID and need a fresh test plan. After publishing, test unpublished changes in Development > Local Test, because beta authorization URLs stop working once the app is published.",
+          "owner": "you",
+          "agentHelp": "Diff requested scopes between versions and draft the update's test plan and scope descriptions.",
+          "time": "1–2 hours + review wait",
+          "sourceIds": [
+            "s16",
+            "s17",
+            "s7",
+            "s4"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Handle rate limits",
+          "detail": "Limits apply per Zoom account and are shared by every app installed on it: a Free account gets 4/second and 6,000/day for Light APIs and 2/second and 2,000/day for Medium APIs, while Pro and Business+ get higher per-second limits. Each user can create or update at most 100 meetings or webinars per day (resets 00:00 UTC). Back off on HTTP 429, cache responses and use webhooks instead of polling.",
+          "owner": "agent",
+          "agentHelp": "Add retry with backoff on 429, per-account request budgeting and response caching.",
+          "time": "1–3 hours",
+          "sourceIds": [
+            "s18",
+            "s3"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Stay compliant after launch",
+          "detail": "Zoom keeps monitoring published apps and can remove an app that presents a significant risk while you remediate. Ongoing user support is part of the Marketplace Developer Agreement, so keep your Support URL, first-response SLA and documentation current.",
+          "owner": "you",
+          "agentHelp": "Monitor your listing URLs and docs for breakage and draft replies to Zoom's information requests.",
+          "time": "Ongoing",
+          "sourceIds": [
+            "s9",
+            "s6",
+            "s7"
+          ],
+          "confidence": "official"
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "item": "Zoom account with developer permissions",
+      "neededFor": "development",
+      "detail": "You must be the account owner, an admin, or hold the 'Zoom for developers' role to create a General app.",
+      "sourceIds": [
+        "s1"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "OAuth redirect URL and OAuth allow list",
+      "neededFor": "development",
+      "detail": "Both fields are required when you create the app. Before submission every URL must be HTTPS on a fully-qualified domain: no localhost, no ngrok unless you can prove ownership, no default Heroku domains.",
+      "sourceIds": [
+        "s1",
+        "s3"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Security evidence for a beta authorization URL (external beta only)",
+      "neededFor": "development",
+      "detail": "SSDLC documentation, SAST and DAST scanner output, your Privacy Policy, any 3 of 5 artifacts (pen-test executive summary, security policy, incident response policy, vulnerability management procedures, infrastructure/dependency policy) and TLS 1.2+. Not required for Marketplace publication.",
+      "sourceIds": [
+        "s4",
+        "s3"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Privacy Policy, Terms of Use, Support URL and user documentation",
+      "neededFor": "production",
+      "detail": "Required for every published app under the Marketplace Developer Agreement, hosted on a domain your company owns (not Google Drive or Dropbox). Documentation must cover adding, using and removing the app.",
+      "sourceIds": [
+        "s6",
+        "s7"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Domain ownership verification",
+      "neededFor": "production",
+      "detail": "One-time verification (DNS TXT record, HTML file, meta tag or manual approval) for the domains of your Privacy Policy, Terms, OAuth redirect, webhook and Home URLs.",
+      "sourceIds": [
+        "s8"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Technical Design section",
+      "neededFor": "production",
+      "detail": "Describes your stack, architecture, security controls and how you use data from each scope; 'Yes' answers need supporting documentation, which Zoom treats as confidential.",
+      "sourceIds": [
+        "s9",
+        "s3"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Test plan and test credentials",
+      "neededFor": "production",
+      "detail": "Step-by-step plan per scope, linked in Release Notes on every submission, plus credentials for at least one test account (two roles if your service needs them).",
+      "sourceIds": [
+        "s7"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Listing metadata and images",
+      "neededFor": "production",
+      "detail": "Short description (max 150 characters), long description, 2–3 images at 1200 x 780 px, optional video up to 40 MB. Required for unlisted apps too.",
+      "sourceIds": [
+        "s7",
+        "s19"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Deauthorization notification endpoint",
+      "neededFor": "production",
+      "detail": "Published apps receive a signed app_deauthorized POST when a user removes the app and must let users remove or deauthorize it.",
+      "sourceIds": [
+        "s12"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Free-account sanctions compliance",
+      "neededFor": "production",
+      "detail": "Developers on free Zoom accounts must upgrade to 'Free with Credit Card' or submit Zoom's developer information form.",
+      "sourceIds": [
+        "s7"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Paid Zoom plan and settings for recordings, transcripts and summaries",
+      "neededFor": "specific_permissions",
+      "detail": "Listing cloud recordings requires a Pro or higher plan with Cloud Recording enabled. AI Companion summaries require a Pro, Business or higher plan with 'Meeting Summary with AI Companion' on, and end-to-end encrypted meetings have no summaries.",
+      "sourceIds": [
+        "s20"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Admin role permissions for :admin scopes",
+      "neededFor": "specific_permissions",
+      "detail": "Account-level (:admin) scopes must be authorized by a user whose role has the matching permissions. For recordings, Zoom staff point to 'View the recording content' and 'Recording and transcript management' in the role settings.",
+      "sourceIds": [
+        "s12",
+        "s26"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "permissions": [
+    {
+      "name": "user:read:user",
+      "purpose": "Read the connected user's profile (GET /users/me) to link the Zoom account and show who is connected.",
+      "tier": "basic",
+      "notes": "user:read:user:admin reads other users on the account. Zoom publishes no formal sensitivity tiers; tiers here are our assessment.",
+      "sourceIds": [
+        "s21",
+        "s2"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "meeting:read:list_meetings",
+      "purpose": "List the user's scheduled meetings (GET /users/{userId}/meetings) to answer schedule questions.",
+      "tier": "basic",
+      "notes": "Returns only scheduled, unexpired meetings (no instant meetings); upcoming/previous types return at most 6 months. Rate label MEDIUM.",
+      "sourceIds": [
+        "s20"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "meeting:read:meeting",
+      "purpose": "Read one scheduled meeting's details (GET /meetings/{meetingId}).",
+      "tier": "basic",
+      "notes": "Use meeting:read:past_meeting for meetings that already ended.",
+      "sourceIds": [
+        "s20"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "meeting:write:meeting",
+      "purpose": "Schedule meetings for the user (POST /users/{userId}/meetings).",
+      "tier": "basic",
+      "notes": "Editing needs meeting:update:meeting. Each user is limited to 100 meeting/webinar create or update requests per day (UTC).",
+      "sourceIds": [
+        "s20",
+        "s18"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "meeting:read:list_past_participants",
+      "purpose": "Get who attended a past meeting (GET /past_meetings/{meetingId}/participants) for follow-ups and notes.",
+      "tier": "sensitive",
+      "notes": "Exposes other participants' personal data, so expect to justify it clearly; the tier is our assessment.",
+      "sourceIds": [
+        "s20"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "cloud_recording:read:list_user_recordings",
+      "purpose": "List the user's cloud recordings (GET /users/{userId}/recordings) so the agent can find meetings to summarize.",
+      "tier": "sensitive",
+      "notes": "Requires a Pro or higher plan with Cloud Recording enabled. Rate label MEDIUM.",
+      "sourceIds": [
+        "s20"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "cloud_recording:read:list_recording_files",
+      "purpose": "Get a meeting's recording files and download URLs (GET /meetings/{meetingId}/recordings), including transcript files.",
+      "tier": "sensitive",
+      "notes": "Download files by sending the user's OAuth access token as a Bearer token. Developers report this scope isn't offered to Server-to-Server apps, only General apps.",
+      "sourceIds": [
+        "s20",
+        "s25"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "cloud_recording:read:meeting_transcript",
+      "purpose": "Get a meeting's transcript (GET /meetings/{meetingId}/transcript) for summaries and Q&A.",
+      "tier": "sensitive",
+      "notes": "Download the transcript with the user's OAuth access token. Recordings and transcripts can contain confidential meeting content, so justify retention and model use explicitly.",
+      "sourceIds": [
+        "s20",
+        "s25"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "meeting:read:summary",
+      "purpose": "Read Zoom's AI Companion meeting summary (GET /meetings/{meetingId}/meeting_summary) instead of summarizing the transcript yourself.",
+      "tier": "sensitive",
+      "notes": "The host needs a Pro, Business or higher plan with 'Meeting Summary with AI Companion' enabled; E2EE meetings have no summary. List with meeting:read:list_summaries.",
+      "sourceIds": [
+        "s20"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": ":admin variants (e.g. meeting:read:list_meetings:admin, cloud_recording:read:list_user_recordings:admin)",
+      "purpose": "Act on every user in a customer's Zoom account, e.g. an org-wide meeting-notes agent.",
+      "tier": "admin_consent",
+      "notes": "Needs an Admin-managed app and an authorizing user whose role has the matching permissions; the customer's admin may also have to pre-approve the app. :master variants are only for master-account setups.",
+      "sourceIds": [
+        "s12",
+        "s13",
+        "s20",
+        "s26"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "nuances": [
+    {
+      "title": "Unpublished apps only work inside your own Zoom account",
+      "detail": "A private app can only be added by members of your own Zoom account. External testers need an approved beta authorization URL that lasts 4 weeks plus two 4-week extensions (90 days total) with standard caps of 10 account-level or 100 user-level additions (ask marketplace.security@zoom.us for more), and getting one requires SSDLC, SAST/DAST and policy evidence. Everyone else waits for Marketplace approval.",
+      "impact": "high",
+      "sourceIds": [
+        "s4",
+        "s5",
+        "s6"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Unlisted is not a shortcut around review",
+      "detail": "Unlisted apps go through the same review as public ones and still need full listing metadata, because it shows in the Active Apps Notifier and users' Added Apps page. Listed apps can't be hidden from search; you can only gate who adds them via your own landing page.",
+      "impact": "high",
+      "sourceIds": [
+        "s9",
+        "s19",
+        "s14",
+        "s25"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Every scope is tested, and new scopes mean a new review",
+      "detail": "Each scope you add is a request to Zoom's Security Review team, which checks least privilege and can make you remove scopes. Adding a new granular scope after launch needs review before it works in Production; reducing scopes or migrating classic scopes to granular doesn't. Existing apps may keep classic scopes such as recording:read, but new work should use granular names like cloud_recording:read:meeting_transcript.",
+      "impact": "high",
+      "sourceIds": [
+        "s1",
+        "s9",
+        "s16",
+        "s17"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Refresh tokens rotate and expire after 90 days",
+      "detail": "Access tokens last 1 hour. Every refresh returns a new refresh token that expires after 90 days, so a failed write of the new token or 90 idle days forces the user to reconnect. An older doc said 15 years; Zoom staff confirmed 90 days.",
+      "impact": "high",
+      "sourceIds": [
+        "s2",
+        "s22"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Customer admins can block your app until they pre-approve it",
+      "detail": "A Zoom account can require Marketplace admin pre-approval before any user authorizes an app; the user can only send a request. Owners and admins approve apps for all users or specific users/groups from the Marketplace. Separately, :admin scopes need an authorizing user whose role has the matching permissions.",
+      "impact": "high",
+      "sourceIds": [
+        "s12",
+        "s13"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Recording, transcript and summary data depends on the user's plan and settings",
+      "detail": "Cloud recordings require a Pro or higher plan with Cloud Recording enabled, and AI Companion summaries require the host's 'Meeting Summary with AI Companion' setting, with none for E2EE meetings. Your agent will see empty results for many free-plan users, and reviewers need a paid test account with real recordings.",
+      "impact": "medium",
+      "sourceIds": [
+        "s20"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Rate limits belong to the customer's account, not your app",
+      "detail": "Limits are shared by all apps installed on a Zoom account and depend on its plan: a Free account gets 4/second and 6,000/day for Light APIs. Meeting create/update is also capped at 100 per user per day, resetting at 00:00 UTC.",
+      "impact": "medium",
+      "sourceIds": [
+        "s18"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Production vs development Client ID trips up submissions",
+      "detail": "First ('Create') submissions must authorize with the Production Client ID, while update submissions use the Development Client ID; using the wrong one is a listed rejection reason. Once you publish, beta authorization URLs stop working, so test changes through Development > Local Test.",
+      "impact": "medium",
+      "sourceIds": [
+        "s7",
+        "s8",
+        "s4"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "JWT is gone and Server-to-Server can't stand in for a General app",
+      "detail": "Zoom stopped new JWT app creation on June 1, 2023, with end of life projected for September 8, 2023. Server-to-Server OAuth only covers your own account, and developers report cloud_recording scopes aren't available to it at all.",
+      "impact": "low",
+      "sourceIds": [
+        "s15",
+        "s2",
+        "s25"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "No access to the app builder",
+      "symptom": "The lower-left navigation at marketplace.zoom.us shows no 'Developer' link, so you can't reach Build an app.",
+      "howToProceed": "Ask your Zoom owner or admin to enable View and Edit for 'Zoom for developers' under User Management > Roles > Role Settings > Advanced features, or sign in with an owner/admin account.",
+      "sourceIds": [
+        "s1"
+      ],
+      "confidence": "official"
+    },
+    {
+      "blocker": "Token is missing a required scope",
+      "symptom": "API call fails with {\"code\": 4711, \"message\": \"Invalid access token, does not contain scopes:[cloud_recording:read:list_recording_files, cloud_recording:read:list_recording_files:admin].\"}",
+      "howToProceed": "Add one of the listed scopes on the Scopes page (check the endpoint's 'Granular Scopes' line), then have the user authorize again; Zoom re-prompts when scopes change. If you built a Server-to-Server app, switch to a General app; for :admin scopes, the authorizing user's role needs the recording permissions.",
+      "sourceIds": [
+        "s25",
+        "s26",
+        "s2",
+        "s20"
+      ],
+      "confidence": "community"
+    },
+    {
+      "blocker": "Users outside your account can't add the app",
+      "symptom": "External users can't install your unpublished app from its authorization URL, or new users can't add your beta app after its 4-week sharing period ends (Zoom doesn't document the exact error text).",
+      "howToProceed": "For a pilot, use Production > Beta Test > Share App > Request to Share (or Request Extension for an expired URL). For general availability, submit the app for review as listed or unlisted.",
+      "sourceIds": [
+        "s4",
+        "s5"
+      ],
+      "confidence": "official"
+    },
+    {
+      "blocker": "Customer account requires admin pre-approval",
+      "symptom": "The user can't authorize your app and is instead offered to request pre-approval from their Zoom Marketplace admin.",
+      "howToProceed": "Send the customer's Zoom admin the pre-approval request (see drafts). An owner or admin approves the app for all users or specific users/groups in the Marketplace, then the user retries.",
+      "sourceIds": [
+        "s12",
+        "s13"
+      ],
+      "confidence": "official"
+    },
+    {
+      "blocker": "Submission rejected on completeness",
+      "symptom": "Review notes cite 'Link and Support URLs (domains not owned by your company)', 'Test plan (insufficient information)', 'Client ID (incorrect)' or insufficient user documentation.",
+      "howToProceed": "Move documents to your own domain, link a step-by-step test plan in Release Notes, authorize with the Production Client ID for a first submission, complete the add/use/remove documentation, then resubmit.",
+      "sourceIds": [
+        "s7"
+      ],
+      "confidence": "official"
+    },
+    {
+      "blocker": "Security review fails",
+      "symptom": "Review notes report the security test as FAIL, or ask you to remove unused or inappropriate scopes (WARNINGS alone still count as PASS).",
+      "howToProceed": "Fix each finding in the remediation report, drop scopes you can't justify, update Technical Design, and resubmit with the test plan.",
+      "sourceIds": [
+        "s10",
+        "s9"
+      ],
+      "confidence": "official"
+    },
+    {
+      "blocker": "Rate limit reached",
+      "symptom": "HTTP 429 with 'You have reached the maximum per-second rate limit for this API. Try again later.' or 'You have reached the maximum daily rate limit for this API. Refer to the response header for details on when you can make another request.'",
+      "howToProceed": "Wait before retrying (daily limits: read the response header), cache responses and switch polling to webhooks. Remember the quota is shared with every other app on the customer's account.",
+      "sourceIds": [
+        "s18"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "agentVsYou": {
+    "agentCan": [
+      "Map each action your agent takes to a Zoom endpoint and its minimal granular scope from the Meetings and Users API reference, and draft every Scope Description.",
+      "Write and test the OAuth code: authorize redirect with state, token exchange at https://zoom.us/oauth/token, rotating refresh-token storage, revocation and 429 backoff.",
+      "Build the webhook endpoint with secret-token verification and the app_deauthorized deletion job.",
+      "Draft your Privacy Policy, Terms, Support page (hours, first-response SLA) and add/use/remove documentation for hosting on your domain.",
+      "Draft the listing descriptions (short one under 150 characters), Technical Design answers and the reviewer test plan.",
+      "Check every redirect, allow-list and listing URL is HTTPS on a domain you own, and generate the domain-verification TXT record or meta tag.",
+      "For an external beta, run SAST/DAST scans and draft the SSDLC, incident response and vulnerability management documents."
+    ],
+    "youMust": [
+      "Get Zoom developer permissions (owner, admin or 'Zoom for developers' role) and, on a free account, add a credit card or submit Zoom's developer information form.",
+      "Create the app in the Marketplace, accept Zoom's terms and submit it for review.",
+      "Add the DNS record or file that proves domain ownership.",
+      "Provide test accounts, including a paid Zoom account with Cloud Recording (and AI Companion summaries, if used) and real recordings, and record a demo video if you want one.",
+      "Answer reviewer remediation notes and resubmit until the app passes.",
+      "Get each enterprise customer's Zoom admin to pre-approve the app when their account requires it.",
+      "Provide ongoing support to your app's users as the Developer Agreement requires."
+    ]
+  },
+  "drafts": [
+    {
+      "title": "Test plan for Zoom Marketplace reviewers",
+      "purpose": "Link this from the Release Notes field on every submission; Zoom rejects submissions without a usable test plan.",
+      "content": "Test plan: [APP_NAME] — Zoom Marketplace review\nSubmission type: [Create (first submission) / Update]\nClient ID in this build: [Production Client ID for Create / Development Client ID for Update]\nDemo video (optional): [LOOM_URL]\n\n1. What the app does\n[APP_NAME] is an AI assistant that [ONE SENTENCE, e.g. answers questions about the user's Zoom schedule, schedules meetings on request and summarizes past recorded meetings]. It is a [User-managed / Admin-managed] General app and only accesses [the authorizing user's own data / data of users in the authorizing account].\n\n2. Test accounts\n- [ROLE_A, e.g. Workspace owner]: [EMAIL] / [PASSWORD] at [SIGN_IN_URL]\n- [ROLE_B, e.g. Member]: [EMAIL] / [PASSWORD]\nZoom-side prerequisites: a [Pro or higher] Zoom account with Cloud Recording [and Meeting Summary with AI Companion] enabled, and at least one past meeting with a cloud recording and transcript. Seed data already loaded: [DESCRIBE].\n\n3. Connect Zoom (user:read:user)\na. Sign in to [APP_URL] as [ROLE_A].\nb. Go to [Settings > Integrations] and click [Connect Zoom].\nc. On the Zoom consent screen, click Allow.\nExpected: you return to [PAGE] and see 'Zoom connected as [ZOOM_EMAIL]'.\n\n4. Scope-by-scope tests\n- meeting:read:list_meetings — In the assistant, type 'What Zoom meetings do I have this week?'. Expected: the same scheduled meetings shown in the Zoom web portal.\n- meeting:write:meeting — Type 'Schedule a 30-minute meeting called Review Test tomorrow at 10:00'. Confirm in the dialog. Expected: a join link; the meeting appears in Zoom.\n- cloud_recording:read:list_user_recordings — Type 'Show my recorded meetings'. Expected: a list of recordings with topic and date.\n- cloud_recording:read:meeting_transcript — Pick a recording and click [Summarize]. Expected: a summary built from the transcript within [N] seconds.\n- [meeting:read:summary — Type 'Show Zoom's summary of my last meeting'. Expected: the AI Companion summary text.]\nRepeat steps 3–4 as [ROLE_B] to confirm [ROLE_B] only sees their own data.\n\n5. Remove the app\na. In the Zoom App Marketplace, go to Manage > Added Apps, select [APP_NAME] and click Remove.\nb. Expected: within [N] minutes [APP_NAME] shows 'Zoom disconnected' and deletes stored Zoom tokens and data (app_deauthorized webhook).\nc. Click [Connect Zoom] again: authorization restarts cleanly.\n\n6. Reviewer contact\n[NAME], [EMAIL] — we reply within [X] business hours."
+    },
+    {
+      "title": "Scope Description texts",
+      "purpose": "Paste into the 'Scope Description' field for each scope on the Scopes page; specific, least-privilege justifications shorten the security review.",
+      "content": "user:read:user\n[APP_NAME] reads the connected user's name, email and Zoom user ID once after authorization to link their Zoom account to their [APP_NAME] account and show which account is connected. We store only [the user ID and email].\n\nmeeting:read:list_meetings\nWhen the user asks the assistant about their schedule (for example 'what meetings do I have tomorrow?'), [APP_NAME] lists their scheduled meetings. Data is read on demand and [not stored / cached for N minutes].\n\nmeeting:write:meeting\nLets the user ask the assistant to schedule a Zoom meeting. [APP_NAME] creates a meeting only after the user confirms the title, time and invitees in [APP_NAME]; it never creates meetings on its own.\n\ncloud_recording:read:list_user_recordings\nLets the assistant show the user's own cloud recordings so they can choose one to summarize. Only metadata (topic, date, recording ID) is read at this step.\n\ncloud_recording:read:meeting_transcript\nWhen the user selects a recorded meeting, [APP_NAME] downloads that meeting's transcript to produce the summary or answer they asked for. Transcripts are [processed in memory and deleted after N days], encrypted at rest, [never used to train models], and deleted when the user removes the app.\n\n[meeting:read:summary\nShows the user Zoom's AI Companion summary of a meeting they hosted, so the assistant can reuse it instead of reprocessing the transcript.]\n\nGeneral note for reviewers: [APP_NAME] is User-managed and requests no :admin scopes; it only accesses data of the user who authorized it."
+    },
+    {
+      "title": "Pre-approval request email to a customer's Zoom admin",
+      "purpose": "Send when a customer's Zoom account requires Marketplace admin pre-approval and their users can't authorize your app.",
+      "content": "Subject: Request to pre-approve [APP_NAME] in your Zoom App Marketplace\n\nHi [ADMIN_NAME],\n\n[USER_NAME] on your team would like to connect [APP_NAME] to their Zoom account. Your Zoom account requires a Marketplace admin to pre-approve apps before users can add them, so we're asking you to approve it.\n\nWhat it is: [ONE SENTENCE ABOUT THE AGENT].\nMarketplace listing: [LISTING_URL] [or: unlisted app, install link [INSTALL_URL]]\n\nWhat it can access (each user authorizes only their own data):\n- [Profile: name and email]\n- [Scheduled meetings: read and create on request]\n- [Cloud recording transcripts of meetings the user selects]\nIt requests no account-wide (admin) scopes.\n\nHow we handle data: [RETENTION], [ENCRYPTION], [SUBPROCESSORS]. Privacy policy: [URL]. Security overview: [URL].\n\nHow to approve: sign in to marketplace.zoom.us as an account owner or admin, open Manage, find [APP_NAME] (or the pending request from [USER_NAME]) and approve it for all users or for specific users or groups.\n\nUsers can remove the app at any time from Manage > Added Apps; when they do, Zoom notifies us and we delete their Zoom data within [N] days.\n\nQuestions: [SUPPORT_EMAIL] / [PHONE].\n\nThanks,\n[YOUR_NAME], [TITLE], [COMPANY]"
+    }
+  ],
+  "openQuestions": [
+    "Total review duration isn't published: Zoom commits only to a response within 5 business days per submission, so the 3–8 week production estimate is inferred, not stated by Zoom.",
+    "Beta authorization URL approval time conflicts between Zoom pages: 'no longer than 3-4 business days' on the sharing page vs '72hrs' in the Authorization URL FAQ.",
+    "The App Review Process page says private and beta apps 'do not require review', yet sharing a beta URL outside your account needs Zoom approval with security evidence; treat that approval as a separate, lighter gate.",
+    "Install caps: the sharing page calls 10 (account-level) and 100 (user-level) the maximum for private apps, while the FAQ calls them the standard for beta apps and says you can ask marketplace.security@zoom.us to raise them; whether increases are granted is unverified.",
+    "The exact error text an external user sees when opening an unpublished app's authorization URL, or one whose beta sharing period expired, isn't documented.",
+    "Whether localhost or ngrok redirect URLs are accepted while developing: Zoom's HTTPS/FQDN rules are stated for submission, but development-time enforcement is unverified.",
+    "The official granular-scope browser page (oauth-scopes-overview) renders client-side and couldn't be read; scope names here come from the per-endpoint 'Granular Scopes' lines in the API reference, so confirm them on the Scopes page in the build flow.",
+    "The questions in the Technical Design section are only visible inside the build flow; how they are scored isn't documented.",
+    "A demo video appears optional (test plan 'can' be a Loom video; gallery video is optional); no official statement makes it mandatory.",
+    "Status of the Data Compliance API: deprecation is confirmed only by a 2021 Zoom staff forum reply, and its docs pages now return 404.",
+    "Priority Review details (employee sponsorship, Premier Developer Support Gold) come from a Zoom-staff forum post, not formal docs; plan price and current availability are unverified.",
+    "Whether the Composio-managed Zoom app covers recording, transcript and summary scopes and is approved for users outside Composio's account wasn't verified."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Zoom Developer Docs — Create an OAuth app (General app)",
+      "url": "https://developers.zoom.us/docs/integrations/create/",
+      "kind": "official"
+    },
+    {
+      "id": "s2",
+      "title": "Zoom Developer Docs — OAuth 2.0",
+      "url": "https://developers.zoom.us/docs/integrations/oauth/",
+      "kind": "official"
+    },
+    {
+      "id": "s3",
+      "title": "Zoom Developer Docs — Security requirements for Zoom Marketplace apps",
+      "url": "https://developers.zoom.us/docs/distribute/security-requirements/",
+      "kind": "official"
+    },
+    {
+      "id": "s4",
+      "title": "Zoom Developer Docs — Sharing private and beta apps",
+      "url": "https://developers.zoom.us/docs/distribute/sharing-private-and-beta-apps/",
+      "kind": "official"
+    },
+    {
+      "id": "s5",
+      "title": "Zoom Developer Docs — Authorization URL FAQ",
+      "url": "https://developers.zoom.us/docs/distribute/app-submission/authorization-url-faq/",
+      "kind": "official"
+    },
+    {
+      "id": "s6",
+      "title": "Zoom Developer Docs — App distribution",
+      "url": "https://developers.zoom.us/docs/distribute/",
+      "kind": "official"
+    },
+    {
+      "id": "s7",
+      "title": "Zoom Developer Docs — Common reasons for app submission rejection",
+      "url": "https://developers.zoom.us/docs/distribute/app-submission/common-rejection-issues/",
+      "kind": "official"
+    },
+    {
+      "id": "s8",
+      "title": "Zoom Developer Docs — Submit apps for review",
+      "url": "https://developers.zoom.us/docs/distribute/app-submission/submit-apps-review/",
+      "kind": "official"
+    },
+    {
+      "id": "s9",
+      "title": "Zoom Developer Docs — App Review Process",
+      "url": "https://developers.zoom.us/docs/distribute/app-review-process/",
+      "kind": "official"
+    },
+    {
+      "id": "s10",
+      "title": "Zoom Developer Docs — Check review status (security test reporting)",
+      "url": "https://developers.zoom.us/docs/distribute/app-submission/check-review-status/",
+      "kind": "official"
+    },
+    {
+      "id": "s11",
+      "title": "Zoom Developer Blog — How long does the App Review Process take?",
+      "url": "https://developers.zoom.us/blog/how-long-does-app-review-take/",
+      "kind": "official"
+    },
+    {
+      "id": "s12",
+      "title": "Zoom Developer Docs — End user authorization",
+      "url": "https://developers.zoom.us/docs/integrations/end-user-auth/",
+      "kind": "official"
+    },
+    {
+      "id": "s13",
+      "title": "Zoom Support — Managing app approval and app requests",
+      "url": "https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0062300",
+      "kind": "official"
+    },
+    {
+      "id": "s14",
+      "title": "Zoom Developer Docs — App access",
+      "url": "https://developers.zoom.us/docs/distribute/app-submission/app-access/",
+      "kind": "official"
+    },
+    {
+      "id": "s15",
+      "title": "Zoom Developer Blog — JWT app type deprecation guide",
+      "url": "https://developers.zoom.us/blog/jwt-deprecation-guide/",
+      "kind": "official"
+    },
+    {
+      "id": "s16",
+      "title": "Zoom Developer Docs — Migrate to granular scopes",
+      "url": "https://developers.zoom.us/docs/integrations/migrate/",
+      "kind": "official"
+    },
+    {
+      "id": "s17",
+      "title": "Zoom Developer Docs — OAuth scopes (classic scopes reference)",
+      "url": "https://developers.zoom.us/docs/integrations/oauth-scopes/",
+      "kind": "official"
+    },
+    {
+      "id": "s18",
+      "title": "Zoom Developer Docs — Rate limits",
+      "url": "https://developers.zoom.us/docs/api/rate-limits/",
+      "kind": "official"
+    },
+    {
+      "id": "s19",
+      "title": "Zoom Developer Docs — Before you start (build flow)",
+      "url": "https://developers.zoom.us/docs/build-flow/before-you-build/",
+      "kind": "official"
+    },
+    {
+      "id": "s20",
+      "title": "Zoom Developer Docs — Meetings API reference (scopes and prerequisites per endpoint)",
+      "url": "https://developers.zoom.us/docs/api/meetings/",
+      "kind": "official"
+    },
+    {
+      "id": "s21",
+      "title": "Zoom Developer Docs — Users API reference",
+      "url": "https://developers.zoom.us/docs/api/users/",
+      "kind": "official"
+    },
+    {
+      "id": "s22",
+      "title": "Zoom Developer Forum — Expiry date of OAuth refresh token",
+      "url": "https://devforum.zoom.us/t/expiry-date-of-oauth-refresh-token/89141",
+      "kind": "community"
+    },
+    {
+      "id": "s23",
+      "title": "Zoom Developer Forum — Zoom Marketplace Priority Review process: how it works",
+      "url": "https://devforum.zoom.us/t/zoom-marketplace-priority-review-process-how-it-works/147432",
+      "kind": "community"
+    },
+    {
+      "id": "s24",
+      "title": "Zoom Developer Forum — Data compliance API deprecated",
+      "url": "https://devforum.zoom.us/t/data-compliance-api-deprecated/51768",
+      "kind": "community"
+    },
+    {
+      "id": "s25",
+      "title": "Recall.ai — Why some Zoom API scopes are only available in certain app types",
+      "url": "https://www.recall.ai/blog/why-some-zoom-api-scopes-are-only-available-in-certain-app-types",
+      "kind": "community"
+    },
+    {
+      "id": "s26",
+      "title": "Zoom Developer Forum — Not able to find correct scopes",
+      "url": "https://devforum.zoom.us/t/not-able-to-find-correct-scopes/114739",
+      "kind": "community"
+    },
+    {
+      "id": "s27",
+      "title": "Composio Docs — Zoom toolkit",
+      "url": "https://docs.composio.dev/toolkits/zoom",
+      "kind": "composio"
+    }
+  ],
+  "composio": {
+    "toolkitSlug": "ZOOM",
+    "managed": true,
+    "note": "Composio provides a managed OAuth app for Zoom (toolkit ZOOM). To let users from any Zoom account install your own branded app, you need a General app published through Zoom Marketplace review."
+  },
+  "verification": {
+    "summary": "Curated from 21 official and 5 community sources (plus Composio's Zoom toolkit page) gathered by research agents on 2026-10-29 and reviewed against the quoted text; hands-on setup attempt pending.",
+    "probes": [
+      {
+        "name": "Composio managed auth",
+        "target": "docs.composio.dev/toolkits/managed-auth",
+        "ok": true,
+        "result": "Managed OAuth available (toolkit ZOOM)."
+      },
+      {
+        "name": "Developer portal reachable",
+        "target": "https://marketplace.zoom.us/",
+        "ok": true,
+        "result": "HTTP 200"
+      },
+      {
+        "name": "OAuth authorize endpoint",
+        "target": "https://zoom.us/oauth/authorize",
+        "ok": true,
+        "result": "HTTP 302 → redirects to zoom.us/oauth/signin. The endpoint is live and handled a request with a fake client_id, as expected."
+      },
+      {
+        "name": "OAuth/OIDC discovery metadata",
+        "target": "https://zoom.us/.well-known/openid-configuration",
+        "ok": true,
+        "result": "Found. authorization_endpoint=https://zoom.us/oauth/authorize; PKCE: plain, S256; 3 scopes advertised."
+      },
+      {
+        "name": "Cited source links",
+        "target": "24 sources",
+        "ok": true,
+        "result": "24/24 cited pages load."
+      }
+    ],
+    "claimChecks": [],
+    "setupAttempts": [],
+    "corrections": []
+  }
+}

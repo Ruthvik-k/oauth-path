@@ -1,0 +1,902 @@
+[
+  {
+    "slug": "github",
+    "name": "GitHub",
+    "category": "Developer tools",
+    "website": "https://github.com",
+    "composioSlug": "GITHUB",
+    "composioManaged": true,
+    "guideSlug": "github"
+  },
+  {
+    "slug": "slack",
+    "name": "Slack",
+    "category": "Communication",
+    "website": "https://slack.com",
+    "composioSlug": "SLACK",
+    "composioManaged": true,
+    "guideSlug": "slack"
+  },
+  {
+    "slug": "gmail",
+    "name": "Gmail",
+    "category": "Google Workspace",
+    "website": "https://mail.google.com",
+    "composioSlug": "GMAIL",
+    "composioManaged": true,
+    "guideSlug": "google-workspace"
+  },
+  {
+    "slug": "google-calendar",
+    "name": "Google Calendar",
+    "category": "Google Workspace",
+    "website": "https://calendar.google.com",
+    "composioSlug": "GOOGLECALENDAR",
+    "composioManaged": true,
+    "guideSlug": "google-workspace"
+  },
+  {
+    "slug": "google-drive",
+    "name": "Google Drive",
+    "category": "Google Workspace",
+    "website": "https://drive.google.com",
+    "composioSlug": "GOOGLEDRIVE",
+    "composioManaged": true,
+    "guideSlug": "google-workspace"
+  },
+  {
+    "slug": "google-sheets",
+    "name": "Google Sheets",
+    "category": "Google Workspace",
+    "website": "https://sheets.google.com",
+    "composioSlug": "GOOGLESHEETS",
+    "composioManaged": true,
+    "guideSlug": "google-workspace"
+  },
+  {
+    "slug": "google-docs",
+    "name": "Google Docs",
+    "category": "Google Workspace",
+    "website": "https://docs.google.com",
+    "composioSlug": "GOOGLEDOCS",
+    "composioManaged": true,
+    "guideSlug": "google-workspace"
+  },
+  {
+    "slug": "facebook-pages",
+    "name": "Facebook Pages",
+    "category": "Social",
+    "website": "https://facebook.com",
+    "composioSlug": "FACEBOOK",
+    "composioManaged": true,
+    "guideSlug": "meta"
+  },
+  {
+    "slug": "instagram",
+    "name": "Instagram",
+    "category": "Social",
+    "website": "https://instagram.com",
+    "composioSlug": "INSTAGRAM",
+    "composioManaged": true,
+    "guideSlug": "meta"
+  },
+  {
+    "slug": "linkedin",
+    "name": "LinkedIn",
+    "category": "Social",
+    "website": "https://linkedin.com",
+    "composioSlug": "LINKEDIN",
+    "composioManaged": true,
+    "guideSlug": "linkedin"
+  },
+  {
+    "slug": "outlook",
+    "name": "Outlook",
+    "category": "Microsoft 365",
+    "website": "https://outlook.com",
+    "composioSlug": "OUTLOOK",
+    "composioManaged": true,
+    "guideSlug": "microsoft-365"
+  },
+  {
+    "slug": "microsoft-teams",
+    "name": "Microsoft Teams",
+    "category": "Microsoft 365",
+    "website": "https://teams.microsoft.com",
+    "composioSlug": "MICROSOFT_TEAMS",
+    "composioManaged": true,
+    "guideSlug": "microsoft-365"
+  },
+  {
+    "slug": "onedrive",
+    "name": "OneDrive",
+    "category": "Microsoft 365",
+    "website": "https://onedrive.live.com",
+    "composioSlug": "ONE_DRIVE",
+    "composioManaged": true,
+    "guideSlug": "microsoft-365"
+  },
+  {
+    "slug": "sharepoint",
+    "name": "SharePoint",
+    "category": "Microsoft 365",
+    "website": "https://sharepoint.com",
+    "composioSlug": "SHARE_POINT",
+    "composioManaged": true,
+    "guideSlug": "microsoft-365"
+  },
+  {
+    "slug": "excel",
+    "name": "Excel",
+    "category": "Microsoft 365",
+    "website": "https://microsoft.com/excel",
+    "composioSlug": "EXCEL",
+    "composioManaged": true,
+    "guideSlug": "microsoft-365"
+  },
+  {
+    "slug": "zoom",
+    "name": "Zoom",
+    "category": "Communication",
+    "website": "https://zoom.us",
+    "composioSlug": "ZOOM",
+    "composioManaged": true,
+    "guideSlug": "zoom"
+  },
+  {
+    "slug": "notion",
+    "name": "Notion",
+    "category": "Productivity",
+    "website": "https://notion.so",
+    "composioSlug": "NOTION",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "linear",
+    "name": "Linear",
+    "category": "Project management",
+    "website": "https://linear.app",
+    "composioSlug": "LINEAR",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "jira",
+    "name": "Jira",
+    "category": "Project management",
+    "website": "https://atlassian.com/software/jira",
+    "composioSlug": "JIRA",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "confluence",
+    "name": "Confluence",
+    "category": "Productivity",
+    "website": "https://atlassian.com/software/confluence",
+    "composioSlug": "CONFLUENCE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "asana",
+    "name": "Asana",
+    "category": "Project management",
+    "website": "https://asana.com",
+    "composioSlug": "ASANA",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "clickup",
+    "name": "ClickUp",
+    "category": "Project management",
+    "website": "https://clickup.com",
+    "composioSlug": "CLICKUP",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "monday-com",
+    "name": "monday.com",
+    "category": "Project management",
+    "website": "https://monday.com",
+    "composioSlug": "MONDAY",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "trello",
+    "name": "Trello",
+    "category": "Project management",
+    "website": "https://trello.com",
+    "composioSlug": "TRELLO",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "wrike",
+    "name": "Wrike",
+    "category": "Project management",
+    "website": "https://wrike.com",
+    "composioSlug": "WRIKE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "basecamp",
+    "name": "Basecamp",
+    "category": "Project management",
+    "website": "https://basecamp.com",
+    "composioSlug": "BASECAMP",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "todoist",
+    "name": "Todoist",
+    "category": "Productivity",
+    "website": "https://todoist.com",
+    "composioSlug": "TODOIST",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "airtable",
+    "name": "Airtable",
+    "category": "Productivity",
+    "website": "https://airtable.com",
+    "composioSlug": "AIRTABLE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "smartsheet",
+    "name": "Smartsheet",
+    "category": "Productivity",
+    "website": "https://smartsheet.com",
+    "composioSlug": "SMARTSHEET",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "miro",
+    "name": "Miro",
+    "category": "Design",
+    "website": "https://miro.com",
+    "composioSlug": "MIRO",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "figma",
+    "name": "Figma",
+    "category": "Design",
+    "website": "https://figma.com",
+    "composioSlug": "FIGMA",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "canva",
+    "name": "Canva",
+    "category": "Design",
+    "website": "https://canva.com",
+    "composioSlug": "CANVA",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "dropbox",
+    "name": "Dropbox",
+    "category": "File storage",
+    "website": "https://dropbox.com",
+    "composioSlug": "DROPBOX",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "box",
+    "name": "Box",
+    "category": "File storage",
+    "website": "https://box.com",
+    "composioSlug": "BOX",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "egnyte",
+    "name": "Egnyte",
+    "category": "File storage",
+    "website": "https://egnyte.com",
+    "composioSlug": "EGNYTE",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "hubspot",
+    "name": "HubSpot",
+    "category": "CRM",
+    "website": "https://hubspot.com",
+    "composioSlug": "HUBSPOT",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "salesforce",
+    "name": "Salesforce",
+    "category": "CRM",
+    "website": "https://salesforce.com",
+    "composioSlug": "SALESFORCE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "pipedrive",
+    "name": "Pipedrive",
+    "category": "CRM",
+    "website": "https://pipedrive.com",
+    "composioSlug": "PIPEDRIVE",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "attio",
+    "name": "Attio",
+    "category": "CRM",
+    "website": "https://attio.com",
+    "composioSlug": "ATTIO",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "freshsales",
+    "name": "Freshsales",
+    "category": "CRM",
+    "website": "https://freshworks.com/crm",
+    "composioSlug": "FRESHSALES",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "zoho-crm",
+    "name": "Zoho CRM",
+    "category": "CRM",
+    "website": "https://zoho.com/crm",
+    "composioSlug": "ZOHO",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "dynamics-365",
+    "name": "Dynamics 365",
+    "category": "CRM",
+    "website": "https://dynamics.microsoft.com",
+    "composioSlug": "DYNAMICS365",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "intercom",
+    "name": "Intercom",
+    "category": "Customer support",
+    "website": "https://intercom.com",
+    "composioSlug": "INTERCOM",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "zendesk",
+    "name": "Zendesk",
+    "category": "Customer support",
+    "website": "https://zendesk.com",
+    "composioSlug": "ZENDESK",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "front",
+    "name": "Front",
+    "category": "Customer support",
+    "website": "https://front.com",
+    "composioSlug": "FRONT",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "help-scout",
+    "name": "Help Scout",
+    "category": "Customer support",
+    "website": "https://helpscout.com",
+    "composioSlug": "HELP_SCOUT",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "gorgias",
+    "name": "Gorgias",
+    "category": "Customer support",
+    "website": "https://gorgias.com",
+    "composioSlug": "GORGIAS",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "servicenow",
+    "name": "ServiceNow",
+    "category": "IT service management",
+    "website": "https://servicenow.com",
+    "composioSlug": "SERVICENOW",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "pagerduty",
+    "name": "PagerDuty",
+    "category": "Developer tools",
+    "website": "https://pagerduty.com",
+    "composioSlug": "PAGERDUTY",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "sentry",
+    "name": "Sentry",
+    "category": "Developer tools",
+    "website": "https://sentry.io",
+    "composioSlug": "SENTRY",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "gitlab",
+    "name": "GitLab",
+    "category": "Developer tools",
+    "website": "https://gitlab.com",
+    "composioSlug": "GITLAB",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "bitbucket",
+    "name": "Bitbucket",
+    "category": "Developer tools",
+    "website": "https://bitbucket.org",
+    "composioSlug": "BITBUCKET",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "vercel",
+    "name": "Vercel",
+    "category": "Developer tools",
+    "website": "https://vercel.com",
+    "composioSlug": "VERCEL",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "supabase",
+    "name": "Supabase",
+    "category": "Developer tools",
+    "website": "https://supabase.com",
+    "composioSlug": "SUPABASE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "datadog",
+    "name": "Datadog",
+    "category": "Developer tools",
+    "website": "https://datadoghq.com",
+    "composioSlug": "DATADOG",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "snowflake",
+    "name": "Snowflake",
+    "category": "Data",
+    "website": "https://snowflake.com",
+    "composioSlug": "SNOWFLAKE",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "google-bigquery",
+    "name": "Google BigQuery",
+    "category": "Data",
+    "website": "https://cloud.google.com/bigquery",
+    "composioSlug": "GOOGLEBIGQUERY",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "google-analytics",
+    "name": "Google Analytics",
+    "category": "Marketing",
+    "website": "https://analytics.google.com",
+    "composioSlug": "GOOGLE_ANALYTICS",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "google-ads",
+    "name": "Google Ads",
+    "category": "Marketing",
+    "website": "https://ads.google.com",
+    "composioSlug": "GOOGLEADS",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "google-search-console",
+    "name": "Google Search Console",
+    "category": "Marketing",
+    "website": "https://search.google.com/search-console",
+    "composioSlug": "GOOGLE_SEARCH_CONSOLE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "mailchimp",
+    "name": "Mailchimp",
+    "category": "Marketing",
+    "website": "https://mailchimp.com",
+    "composioSlug": "MAILCHIMP",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "klaviyo",
+    "name": "Klaviyo",
+    "category": "Marketing",
+    "website": "https://klaviyo.com",
+    "composioSlug": "KLAVIYO",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "constant-contact",
+    "name": "Constant Contact",
+    "category": "Marketing",
+    "website": "https://constantcontact.com",
+    "composioSlug": "CONSTANT_CONTACT",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "meta-ads",
+    "name": "Meta Ads",
+    "category": "Marketing",
+    "website": "https://facebook.com/business/ads",
+    "composioSlug": "METAADS",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "linkedin-ads",
+    "name": "LinkedIn Ads",
+    "category": "Marketing",
+    "website": "https://business.linkedin.com/marketing-solutions/ads",
+    "composioSlug": "LINKEDIN_ADS",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "tiktok-ads",
+    "name": "TikTok Ads",
+    "category": "Marketing",
+    "website": "https://ads.tiktok.com",
+    "composioSlug": "TIKTOK_ADS",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "reddit-ads",
+    "name": "Reddit Ads",
+    "category": "Marketing",
+    "website": "https://ads.reddit.com",
+    "composioSlug": "REDDIT_ADS",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "x-twitter",
+    "name": "X (Twitter)",
+    "category": "Social",
+    "website": "https://x.com",
+    "composioSlug": "TWITTER",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "reddit",
+    "name": "Reddit",
+    "category": "Social",
+    "website": "https://reddit.com",
+    "composioSlug": "REDDIT",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "pinterest",
+    "name": "Pinterest",
+    "category": "Social",
+    "website": "https://pinterest.com",
+    "composioSlug": "PINTEREST",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "tiktok",
+    "name": "TikTok",
+    "category": "Social",
+    "website": "https://tiktok.com",
+    "composioSlug": "TIKTOK",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "threads",
+    "name": "Threads",
+    "category": "Social",
+    "website": "https://threads.net",
+    "composioSlug": "THREADS",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "youtube",
+    "name": "YouTube",
+    "category": "Social",
+    "website": "https://youtube.com",
+    "composioSlug": "YOUTUBE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "discord",
+    "name": "Discord",
+    "category": "Communication",
+    "website": "https://discord.com",
+    "composioSlug": "DISCORD",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "whatsapp-business",
+    "name": "WhatsApp Business",
+    "category": "Communication",
+    "website": "https://business.whatsapp.com",
+    "composioSlug": "WHATSAPP",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "webex",
+    "name": "Webex",
+    "category": "Communication",
+    "website": "https://webex.com",
+    "composioSlug": "WEBEX",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "calendly",
+    "name": "Calendly",
+    "category": "Scheduling",
+    "website": "https://calendly.com",
+    "composioSlug": "CALENDLY",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "cal-com",
+    "name": "Cal.com",
+    "category": "Scheduling",
+    "website": "https://cal.com",
+    "composioSlug": "CAL",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "typeform",
+    "name": "Typeform",
+    "category": "Forms",
+    "website": "https://typeform.com",
+    "composioSlug": "TYPEFORM",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "surveymonkey",
+    "name": "SurveyMonkey",
+    "category": "Forms",
+    "website": "https://surveymonkey.com",
+    "composioSlug": "SURVEY_MONKEY",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "docusign",
+    "name": "DocuSign",
+    "category": "E-signature",
+    "website": "https://docusign.com",
+    "composioSlug": "DOCUSIGN",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "dropbox-sign",
+    "name": "Dropbox Sign",
+    "category": "E-signature",
+    "website": "https://sign.dropbox.com",
+    "composioSlug": "DROPBOX_SIGN",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "stripe",
+    "name": "Stripe",
+    "category": "Payments",
+    "website": "https://stripe.com",
+    "composioSlug": "STRIPE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "square",
+    "name": "Square",
+    "category": "Payments",
+    "website": "https://squareup.com",
+    "composioSlug": "SQUARE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "paypal",
+    "name": "PayPal",
+    "category": "Payments",
+    "website": "https://paypal.com",
+    "composioSlug": "PAYPAL",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "quickbooks",
+    "name": "QuickBooks",
+    "category": "Accounting",
+    "website": "https://quickbooks.intuit.com",
+    "composioSlug": "QUICKBOOKS",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "xero",
+    "name": "Xero",
+    "category": "Accounting",
+    "website": "https://xero.com",
+    "composioSlug": "XERO",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "freshbooks",
+    "name": "FreshBooks",
+    "category": "Accounting",
+    "website": "https://freshbooks.com",
+    "composioSlug": "FRESHBOOKS",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "netsuite",
+    "name": "NetSuite",
+    "category": "ERP",
+    "website": "https://netsuite.com",
+    "composioSlug": "NETSUITE",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "shopify",
+    "name": "Shopify",
+    "category": "E-commerce",
+    "website": "https://shopify.com",
+    "composioSlug": "SHOPIFY",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "ebay",
+    "name": "eBay",
+    "category": "E-commerce",
+    "website": "https://ebay.com",
+    "composioSlug": "EBAY",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "webflow",
+    "name": "Webflow",
+    "category": "Website builders",
+    "website": "https://webflow.com",
+    "composioSlug": "WEBFLOW",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "wix",
+    "name": "Wix",
+    "category": "Website builders",
+    "website": "https://wix.com",
+    "composioSlug": "WIX",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "gusto",
+    "name": "Gusto",
+    "category": "HR & payroll",
+    "website": "https://gusto.com",
+    "composioSlug": "GUSTO",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "bamboohr",
+    "name": "BambooHR",
+    "category": "HR & payroll",
+    "website": "https://bamboohr.com",
+    "composioSlug": "BAMBOOHR",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "deel",
+    "name": "Deel",
+    "category": "HR & payroll",
+    "website": "https://deel.com",
+    "composioSlug": "DEEL",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "workday",
+    "name": "Workday",
+    "category": "HR & payroll",
+    "website": "https://workday.com",
+    "composioSlug": "WORKDAY",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "greenhouse",
+    "name": "Greenhouse",
+    "category": "Recruiting",
+    "website": "https://greenhouse.io",
+    "composioSlug": "GREENHOUSE",
+    "composioManaged": true,
+    "guideSlug": null
+  },
+  {
+    "slug": "lever",
+    "name": "Lever",
+    "category": "Recruiting",
+    "website": "https://lever.co",
+    "composioSlug": "LEVER",
+    "composioManaged": false,
+    "guideSlug": null
+  },
+  {
+    "slug": "spotify",
+    "name": "Spotify",
+    "category": "Media",
+    "website": "https://spotify.com",
+    "composioSlug": "SPOTIFY",
+    "composioManaged": false,
+    "guideSlug": null
+  }
+]
