@@ -46,7 +46,7 @@ export function SubmitBox({ curatedSlugs }: { curatedSlugs: string[] }) {
         </button>
       </form>
       <p className="mt-2 text-sm text-slate-500">
-        Not in the library? An agent researches it live (about 2–3 minutes).{" "}
+        Not in the library? An agent researches it live (about a minute).{" "}
         <span className="whitespace-nowrap">Try:</span>{" "}
         {EXAMPLES.map((ex, i) => (
           <span key={ex}>

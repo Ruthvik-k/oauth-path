@@ -142,7 +142,7 @@ export function GenerateView() {
             Researching the OAuth path for <span className="text-indigo-700">{state.done?.name ?? query}</span>
           </h1>
         </div>
-        <div className="text-sm tabular-nums text-slate-500">{finished ? `Finished in ${elapsed}s` : `${elapsed}s elapsed · usually 2–3 min`}</div>
+        <div className="text-sm tabular-nums text-slate-500">{finished ? `Finished in ${elapsed}s` : `${elapsed}s elapsed · usually about a minute`}</div>
       </div>
 
       {state.error && (
