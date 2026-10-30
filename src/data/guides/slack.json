@@ -2,7 +2,7 @@
   "slug": "slack",
   "origin": "curated",
   "createdAt": "2026-10-29T00:00:00.000Z",
-  "lastCheckedAt": "2026-10-29T00:00:00.000Z",
+  "lastCheckedAt": "2026-10-30T00:00:00.000Z",
   "model": null,
   "query": null,
   "app": {
@@ -118,7 +118,7 @@
         },
         {
           "title": "Set Redirect URLs and store credentials",
-          "detail": "Under OAuth & Permissions, add an HTTPS Redirect URL without a '#' fragment; any redirect_uri you send must equal it or be a subdirectory on the same scheme, host and port. Copy the Client ID and Client Secret from the App Management page into your server's secret store, never into client-side code.",
+          "detail": "Under OAuth & Permissions, add an HTTPS Redirect URL without a '#' fragment; any redirect_uri you send must equal it or be a subdirectory on the same scheme, host and port. Slack's docs require HTTPS, but in our test the settings page also accepted http://example.com/x, so the form won't catch a non-HTTPS URL for you. Copy the Client ID and Client Secret from the App Management page into your server's secret store.",
           "owner": "you",
           "agentHelp": "An agent can check that every redirect_uri your code sends is HTTPS and falls under a registered Redirect URL.",
           "time": "10 min",
@@ -175,7 +175,7 @@
             "s5",
             "s7"
           ],
-          "confidence": "official"
+          "confidence": "tested"
         }
       ]
     },
@@ -331,7 +331,7 @@
     {
       "item": "HTTPS endpoint for the OAuth redirect (and Events/interactivity URLs)",
       "neededFor": "development",
-      "detail": "Redirect URLs and redirect_uri values must use HTTPS. Whether plain http://localhost works without PKCE is not stated explicitly; the PKCE page only says localhost redirects are treated as server redirects if PKCE was never enabled.",
+      "detail": "Slack's docs say Redirect URLs and redirect_uri values must use HTTPS. In our hands-on test (2026-10-30) the OAuth & Permissions page still saved http://example.com/x, so the form does not enforce this; we did not test whether an authorize request with an http redirect_uri then succeeds. Use HTTPS in production regardless.",
       "sourceIds": [
         "s5",
         "s7",
@@ -725,7 +725,7 @@
     }
   ],
   "openQuestions": [
-    "Local development: official OAuth docs say redirect URLs must use HTTPS. The PKCE page treats http://localhost redirects as server redirects when PKCE was never enabled, which suggests they are accepted, but no official page says plain HTTP localhost works without PKCE.",
+    "Non-HTTPS redirects: Slack's OAuth docs say redirect URLs must use HTTPS, yet the settings page accepted http://example.com/x in our test. It is unconfirmed whether the authorize step then accepts an http redirect_uri (including http://localhost without PKCE).",
     "The Manage Distribution checklist items (for example removing hard-coded information) only show in the logged-in app settings; the wording comes from community sources.",
     "Whether installs that predate May 29, 2025 were moved to the Tier 1 history limits on March 3, 2026: a community post says yes, while Slack's changelog still says existing installs are unaffected.",
     "Where Slack draws the line between an 'internal customer-built app' (full limits, MCP and RTS allowed) and a commercially distributed app, for example a vendor-built agent installed in a single customer workspace.",
@@ -907,7 +907,7 @@
     "note": "Composio provides a managed OAuth app for Slack (toolkit SLACK). You need your own app when workspaces should see your app name and bot, for custom scopes or events, and to control your own rate-limit tier and Marketplace status."
   },
   "verification": {
-    "summary": "Curated from 25 official and 2 community sources gathered by research agents on 2026-10-29 and reviewed against the quoted text; hands-on setup attempt pending.",
+    "summary": "Curated from 25 official and 2 community sources gathered by research agents on 2026-10-29 and reviewed against the quoted text; hands-on install succeeded on 2026-10-30; one correction (the settings form accepts http:// redirect URLs despite the docs).",
     "probes": [
       {
         "name": "Composio managed auth",
@@ -941,7 +941,28 @@
       }
     ],
     "claimChecks": [],
-    "setupAttempts": [],
-    "corrections": []
+    "setupAttempts": [
+      {
+        "date": "2026-10-30",
+        "by": "Human tester (new free Slack workspace)",
+        "goal": "Create a Blank app, add a redirect URL and bot scopes, and complete the OAuth v2 install for one's own workspace",
+        "outcome": "succeeded",
+        "findings": [
+          "Creating a workspace at slack.com/get-started pushed paid-plan upsells (Pro/Business+). The tester closed the tab, and the workspace was still usable for app development on the free plan.",
+          "The 'Create new app' dialog (2026) offers AI agent, Starter app, From a manifest and Blank app. 'From scratch' no longer exists; Blank app is its replacement, which the guide already reflected.",
+          "Added https://example.com/oauth/callback as a Redirect URL plus bot scopes channels:history and chat:write.",
+          "The settings page also accepted http://example.com/x as a Redirect URL, despite Slack's docs requiring HTTPS. The guide's requirement was updated to say the form doesn't enforce it.",
+          "Opening https://slack.com/oauth/v2/authorize with the client ID, scopes and redirect_uri showed the consent screen. After Allow, the browser landed on the callback with a code parameter. No review or approval was needed to install into one's own workspace.",
+          "Otherwise matched the guide."
+        ]
+      }
+    ],
+    "corrections": [
+      {
+        "original": "Redirect URLs must use HTTPS (stated as a hard rule, from Slack's OAuth docs).",
+        "corrected": "Slack's docs require HTTPS, but the app settings page accepted http://example.com/x. The form doesn't enforce HTTPS, and whether an http redirect_uri works at authorize time is untested.",
+        "how": "Hands-on test on 2026-10-30: the tester added an http:// Redirect URL under OAuth & Permissions and it saved without error."
+      }
+    ]
   }
 }

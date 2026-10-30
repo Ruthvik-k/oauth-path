@@ -8,6 +8,10 @@
     {
       "title": "Slack's 'Create new app' dialog changed; our checklist was out of date",
       "detail": "The dialog now offers AI agent, Starter app, From a manifest and Blank app. 'From scratch' is gone. The curated Slack guide already said 'Blank app' because it was built from current docs, but our manual checklist said 'From scratch' and confused the tester. Creating a new workspace also pushed paid-plan upsells, which a developer can skip by staying on the Free plan or using a Developer Program sandbox."
+    },
+    {
+      "title": "Slack: install worked hands-on; the settings form accepted an http:// redirect URL",
+      "detail": "The OAuth v2 install into the tester's own workspace worked with no review, as the guide says. But the OAuth & Permissions page saved http://example.com/x even though Slack's docs and our guide said HTTPS is required. We corrected the guide to separate what the docs say from what the form enforces, and left the authorize-time behaviour as an open question."
     }
   ],
   "comparisons": []
