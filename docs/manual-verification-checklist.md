@@ -58,9 +58,9 @@ GitHub
 
 ## 2. Slack (about 15 minutes)
 
-You need a Slack workspace where you can install apps. If you don't have one, create a free one at https://slack.com/get-started.
+You need a Slack workspace where you can install apps. If you don't have one, create a free one at https://slack.com/get-started. While you set it up, Slack may show paid plans (Pro or Business+). You don't need them: look for an option to continue on the **Free** plan. If you closed that tab, the workspace usually exists anyway; check whether it appears in the workspace dropdown in step 1. Alternatively, join the free Slack Developer Program (https://api.slack.com/developer-program) and create a developer sandbox.
 
-1. Go to https://api.slack.com/apps → **Create New App** → **From scratch** → name `OAuth Path test`, pick your workspace.
+1. Go to https://api.slack.com/apps → **Create New App**. In the "Create new app" dialog, pick **Blank app** ("Empty app with minimal setup") under "Or start your own way" → **Continue** → name `OAuth Path test`, pick your workspace. (Slack renamed "From scratch" to "Blank app" in 2026. Skip the "AI agent" and "Starter app" templates.)
 2. Left menu **OAuth & Permissions**:
    - Under **Redirect URLs**, add `https://example.com/oauth/callback` and save. Also try adding `http://example.com/x` (http, not https) and note whether Slack rejects it.
    - Under **Bot Token Scopes**, add `channels:history` and `chat:write`.

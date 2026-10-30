@@ -2,7 +2,7 @@
   "slug": "github",
   "origin": "curated",
   "createdAt": "2026-10-29T00:00:00.000Z",
-  "lastCheckedAt": "2026-10-29T00:00:00.000Z",
+  "lastCheckedAt": "2026-10-30T00:00:00.000Z",
   "model": null,
   "query": null,
   "composio": {
@@ -11,7 +11,7 @@
     "note": "Composio provides a managed OAuth app for GitHub (toolkit GITHUB), so you can prototype without registering your own. You need your own app for your name on the authorization screen, a GitHub App's fine-grained permissions, your own rate limits, or org owners who only approve apps they recognize."
   },
   "verification": {
-    "summary": "Curated from 24 official and 0 community sources (plus Composio's GitHub toolkit page) gathered by research agents on 2026-10-29 and reviewed against the quoted text; hands-on setup attempt pending.",
+    "summary": "Curated from 24 official and 0 community sources (plus Composio's GitHub toolkit page) gathered by research agents on 2026-10-29 and reviewed against the quoted text; hands-on OAuth App setup succeeded on 2026-10-30 (no review needed; matched the guide, plus one undocumented callback parameter).",
     "probes": [
       {
         "name": "Composio managed auth",
@@ -45,7 +45,21 @@
       }
     ],
     "claimChecks": [],
-    "setupAttempts": [],
+    "setupAttempts": [
+      {
+        "date": "2026-10-30",
+        "by": "Human tester (personal GitHub account, free plan)",
+        "goal": "Register an OAuth App and complete the authorization step for one's own account",
+        "outcome": "succeeded",
+        "findings": [
+          "Registration at Settings → Developer settings → OAuth Apps → New OAuth App took a few minutes. Name, homepage URL and callback URL were the only fields needed, and no client secret was needed to test authorization.",
+          "Opening https://github.com/login/oauth/authorize with the client ID, redirect_uri=https://example.com/oauth/callback and scope=repo showed the consent screen. After Authorize, the browser landed on the callback with a code parameter. The flow worked immediately.",
+          "GitHub asked for no review, approval or verification at any point. This confirms the guide's self-serve verdict for personal accounts.",
+          "New observation: the redirect also carried iss=https://github.com/login/oauth, an RFC 9207 issuer identifier. GitHub's 'Authorizing OAuth apps' page did not mention this parameter when checked on 2026-10-30. Code that strictly validates callback parameters must allow it.",
+          "Everything else matched the guide's steps."
+        ]
+      }
+    ],
     "corrections": []
   },
   "app": {
@@ -225,7 +239,7 @@
             "s7",
             "s8"
           ],
-          "confidence": "official"
+          "confidence": "tested"
         }
       ]
     },
@@ -247,7 +261,7 @@
             "s2",
             "s19"
           ],
-          "confidence": "official"
+          "confidence": "tested"
         },
         {
           "title": "Give customers the org approval path",
@@ -663,6 +677,13 @@
         "s6"
       ],
       "confidence": "official"
+    },
+    {
+      "title": "Callback now includes an iss (issuer) parameter",
+      "detail": "In our hands-on test, GitHub's redirect added iss=https://github.com/login/oauth next to code and state (RFC 9207 issuer identification, which helps prevent mix-up attacks between authorization servers). Allow the extra parameter, and optionally check that it equals https://github.com/login/oauth before exchanging the code.",
+      "impact": "low",
+      "sourceIds": [],
+      "confidence": "tested"
     }
   ],
   "blockers": [
@@ -787,7 +808,8 @@
     "The 2026-08-14 changes (multiple OAuth redirect URIs, OAuth refresh tokens, wildcard toggle) are said to ship in GitHub Enterprise Server 3.23; not checked against GHES release notes, and offline_access may have no effect on older GHES.",
     "The SSO app-authorization guidance lives in the GitHub Enterprise Cloud docs; whether it differs for Enterprise Managed Users wasn't checked.",
     "Whether Composio's managed GitHub connection is an OAuth App or a GitHub App, and which scopes and rate limits it uses, wasn't verified; Composio's toolkit page only lists auth as OAUTH2.",
-    "All time estimates in this guide are inferred: GitHub publishes none, and org approval time depends entirely on each customer's admins."
+    "All time estimates in this guide are inferred: GitHub publishes none, and org approval time depends entirely on each customer's admins.",
+    "GitHub returns an iss parameter on the OAuth callback (observed 2026-10-30), but its 'Authorizing OAuth apps' docs don't mention it yet; it is unclear whether GitHub Apps' user authorization does the same."
   ],
   "sources": [
     {

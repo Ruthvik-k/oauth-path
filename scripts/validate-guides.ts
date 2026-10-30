@@ -54,7 +54,8 @@ for (const file of files) {
         used.add(id);
         if (!ids.has(id)) errors.push(`${where} cites unknown source ${id}`);
       }
-      if (!item.sourceIds.length && item.confidence !== "inferred") errors.push(`${where} has no sources but confidence ${item.confidence}`);
+      if (!item.sourceIds.length && item.confidence !== "inferred" && !(item.confidence === "tested" && hasAttempts))
+        errors.push(`${where} has no sources but confidence ${item.confidence}`);
       if (item.confidence === "tested" && !hasAttempts) errors.push(`${where} is "tested" but there are no setupAttempts`);
     };
     g.phases.forEach((p, i) => p.steps.forEach((s, j) => check(`phases[${i}].steps[${j}]`, s)));

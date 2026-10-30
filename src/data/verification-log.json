@@ -1,5 +1,14 @@
 {
-  "updatedAt": "2026-10-29",
-  "learnings": [],
+  "updatedAt": "2026-10-30",
+  "learnings": [
+    {
+      "title": "GitHub: self-serve confirmed hands-on, plus an undocumented callback parameter",
+      "detail": "A tester registered an OAuth App and completed authorization in a few minutes with no review, as the guide says. The callback also carried iss=https://github.com/login/oauth (RFC 9207), which GitHub's OAuth docs don't mention. We added it as a Tested nuance."
+    },
+    {
+      "title": "Slack's 'Create new app' dialog changed; our checklist was out of date",
+      "detail": "The dialog now offers AI agent, Starter app, From a manifest and Blank app. 'From scratch' is gone. The curated Slack guide already said 'Blank app' because it was built from current docs, but our manual checklist said 'From scratch' and confused the tester. Creating a new workspace also pushed paid-plan upsells, which a developer can skip by staying on the Free plan or using a Developer Program sandbox."
+    }
+  ],
   "comparisons": []
 }
