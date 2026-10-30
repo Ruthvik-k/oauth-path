@@ -12,6 +12,10 @@
     {
       "title": "Slack: install worked hands-on; the settings form accepted an http:// redirect URL",
       "detail": "The OAuth v2 install into the tester's own workspace worked with no review, as the guide says. But the OAuth & Permissions page saved http://example.com/x even though Slack's docs and our guide said HTTPS is required. We corrected the guide to separate what the docs say from what the form enforces, and left the authorize-time behaviour as an open question."
+    },
+    {
+      "title": "Google: Gmail scopes are hidden until the Gmail API is enabled",
+      "detail": "The tester couldn't find any gmail scopes under Data Access. The console only lists scopes for enabled APIs ('Only scopes for enabled APIs are listed below'). The curated guide already has 'Enable the Gmail, Calendar and Drive APIs' as its own step, but our shorter manual checklist skipped it, so the checklist was fixed. Lesson: order matters, and a skipped prerequisite step looks like a missing feature."
     }
   ],
   "comparisons": []

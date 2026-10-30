@@ -90,16 +90,17 @@ Slack
    - App name `OAuth Path test`, support email = your email
    - Audience: **External**
    - Contact email: your email → agree → **Create**
-3. **Data Access** (left menu) → **Add or remove scopes** → filter for `gmail`. Add `.../auth/gmail.readonly` and `.../auth/gmail.send`. **Write down which section each lands in: "sensitive" or "restricted"**, and what the console says about verification. Save.
-4. **Audience** (left menu) → under Test users click **Add users** → add your own Gmail address.
-5. **Clients** (left menu) → **Create client** → Application type **Web application** → under Authorized redirect URIs add `https://example.com/oauth/callback` → **Create**. Copy the **Client ID**.
-6. Wait about 5 minutes (Google says changes can take a while to apply), then open, replacing `YOUR_CLIENT_ID`:
+3. **Enable the Gmail API first** (otherwise its scopes don't appear in the next step): open https://console.cloud.google.com/apis/library, make sure `oauth-path-test` is the selected project at the top, search **Gmail API**, open it and click **Enable**. Then go back to Google Auth Platform.
+4. **Data Access** (left menu) → **Add or remove scopes** → filter for `gmail` (refresh the page if nothing shows). Add `.../auth/gmail.readonly` and `.../auth/gmail.send`. **Write down which section each lands in: "sensitive" or "restricted"**, and what the console says about verification. Save. If the filter still finds nothing, paste `https://www.googleapis.com/auth/gmail.readonly` and `https://www.googleapis.com/auth/gmail.send` into the **Manually add scopes** box at the bottom.
+5. **Audience** (left menu) → under Test users click **Add users** → add your own Gmail address.
+6. **Clients** (left menu) → **Create client** → Application type **Web application** → under Authorized redirect URIs add `https://example.com/oauth/callback` → **Create**. Copy the **Client ID**.
+7. Wait about 5 minutes (Google says changes can take a while to apply), then open, replacing `YOUR_CLIENT_ID`:
    ```
    https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=https://example.com/oauth/callback&response_type=code&scope=https://www.googleapis.com/auth/gmail.readonly&access_type=offline&prompt=consent
    ```
-7. You should see a warning like **"Google hasn't verified this app"**. **Write down the exact wording.** Click **Continue**, then allow access. Did you land on example.com with `?code=`?
-8. Optional: **Audience** → **Publish app**. Note what it asks for or warns about, then cancel.
-9. Afterwards: delete the project (IAM & Admin → Settings → **Shut down**), and remove access at https://myaccount.google.com/permissions.
+8. You should see a warning like **"Google hasn't verified this app"**. **Write down the exact wording.** Click **Continue**, then allow access. Did you land on example.com with `?code=`?
+9. Optional: **Audience** → **Publish app**. Note what it asks for or warns about, then cancel.
+10. Afterwards: delete the project (IAM & Admin → Settings → **Shut down**), and remove access at https://myaccount.google.com/permissions.
 
 **Send back:**
 ```
