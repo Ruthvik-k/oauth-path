@@ -49,13 +49,19 @@ async function readJson<T>(pathname: string): Promise<T | null> {
   // (Also required because @vercel/blob checks token expiry with Date.now(), which prerendering rejects.)
   await connection();
   if (blobEnabled()) {
-    try {
-      const res = await withBlobAccess((access) => get(pathname, { access, useCache: false }));
-      if (!res || res.statusCode !== 200) return null;
-      return JSON.parse(await new Response(res.stream).text()) as T;
-    } catch {
-      return null;
+    // A private read on a public store (or vice versa) can come back as "not found" rather than an error,
+    // so on a miss try the other access mode once and remember whichever one works.
+    for (const access of [blobAccess, blobAccess === "private" ? "public" : "private"] as const) {
+      try {
+        const res = await get(pathname, { access, useCache: false });
+        if (!res || res.statusCode !== 200) continue;
+        blobAccess = access;
+        return JSON.parse(await new Response(res.stream).text()) as T;
+      } catch {
+        // try the other access mode
+      }
     }
+    return null;
   }
   try {
     return JSON.parse(await fs.readFile(path.join(localDir(), pathname), "utf8")) as T;
