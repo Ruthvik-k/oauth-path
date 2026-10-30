@@ -16,6 +16,10 @@
     {
       "title": "Google: Gmail scopes are hidden until the Gmail API is enabled",
       "detail": "The tester couldn't find any gmail scopes under Data Access. The console only lists scopes for enabled APIs ('Only scopes for enabled APIs are listed below'). The curated guide already has 'Enable the Gmail, Calendar and Drive APIs' as its own step, but our shorter manual checklist skipped it, so the checklist was fixed. Lesson: order matters, and a skipped prerequisite step looks like a missing feature."
+    },
+    {
+      "title": "Google: scope tiers confirmed hands-on; warning screen differs for test users",
+      "detail": "The console labelled gmail.send sensitive and gmail.readonly restricted, as the guide said. Test users see a milder 'currently being tested' warning with a direct Continue button, not the Advanced > Go to app path a community source described. We corrected the blocker. Authorization works in Testing mode immediately even for a restricted scope; the cost comes later, at verification time."
     }
   ],
   "comparisons": []

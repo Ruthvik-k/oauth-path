@@ -2,7 +2,7 @@
   "slug": "google-workspace",
   "origin": "curated",
   "createdAt": "2026-10-29T00:00:00.000Z",
-  "lastCheckedAt": "2026-10-29T00:00:00.000Z",
+  "lastCheckedAt": "2026-10-30T00:00:00.000Z",
   "model": null,
   "query": null,
   "app": {
@@ -86,7 +86,7 @@
             "s3",
             "s38"
           ],
-          "confidence": "official"
+          "confidence": "tested"
         },
         {
           "title": "Verify your domain and publish a homepage and privacy policy",
@@ -132,11 +132,11 @@
             "s4",
             "s2"
           ],
-          "confidence": "official"
+          "confidence": "tested"
         },
         {
           "title": "Declare your scopes on Data Access",
-          "detail": "At console.developers.google.com/auth/scopes add exactly the scopes your code will request; the page groups them into sensitive and restricted. If your code requests a sensitive or restricted scope that isn't declared here, users get the unverified-app screen.",
+          "detail": "At console.developers.google.com/auth/scopes add exactly the scopes your code will request; the page groups them into sensitive and restricted. If your code requests a sensitive or restricted scope that isn't declared here, users get the unverified-app screen. The picker only lists scopes for APIs already enabled in the project (the console says 'Only scopes for enabled APIs are listed below'), so enable the Gmail API first or paste the scope URLs manually.",
           "owner": "agent",
           "agentHelp": "Can compare the scope strings in your code with the Data Access list and fix any mismatch.",
           "time": "5 min",
@@ -144,7 +144,7 @@
             "s15",
             "s30"
           ],
-          "confidence": "official"
+          "confidence": "tested"
         },
         {
           "title": "Create a Web application OAuth client",
@@ -157,7 +157,7 @@
             "s3",
             "s27"
           ],
-          "confidence": "official"
+          "confidence": "tested"
         },
         {
           "title": "Implement the authorization-code flow with offline access",
@@ -181,7 +181,7 @@
             "s4",
             "s2"
           ],
-          "confidence": "official"
+          "confidence": "tested"
         }
       ]
     },
@@ -462,24 +462,24 @@
       "name": "https://www.googleapis.com/auth/gmail.send",
       "purpose": "Send emails the agent drafted, after the user confirms.",
       "tier": "sensitive",
-      "notes": "Needs sensitive-scope verification (Google estimate ~10 business days) but no CASA. Cannot read the mailbox. Outside Workspace add-ons it is the cheapest way to send mail.",
+      "notes": "Needs sensitive-scope verification (Google estimate ~10 business days) but no CASA. Cannot read the mailbox. Outside Workspace add-ons it is the cheapest way to send mail. Confirmed in the console: listed under 'Your sensitive scopes' as 'Send email on your behalf'.",
       "sourceIds": [
         "s9",
         "s13"
       ],
-      "confidence": "official"
+      "confidence": "tested"
     },
     {
       "name": "https://www.googleapis.com/auth/gmail.readonly",
       "purpose": "Search and read messages and attachments for summaries, triage and Q&A.",
       "tier": "restricted",
-      "notes": "Restricted: full verification plus annual CASA if the data is stored on or passes through your servers.",
+      "notes": "Restricted: full verification plus annual CASA if the data is stored on or passes through your servers. Confirmed in the console: listed under 'Your restricted scopes' as 'View your email messages and settings'.",
       "sourceIds": [
         "s9",
         "s10",
         "s16"
       ],
-      "confidence": "official"
+      "confidence": "tested"
     },
     {
       "name": "https://www.googleapis.com/auth/gmail.modify",
@@ -667,6 +667,13 @@
         "s29"
       ],
       "confidence": "official"
+    },
+    {
+      "title": "Callback includes iss=https://accounts.google.com",
+      "detail": "In our hands-on test the redirect carried iss=https://accounts.google.com before the code (RFC 9207 issuer identification). Allow the extra parameter, and optionally check it before exchanging the code.",
+      "impact": "low",
+      "sourceIds": [],
+      "confidence": "tested"
     }
   ],
   "blockers": [
@@ -682,7 +689,7 @@
     },
     {
       "blocker": "Unverified app warning and user cap",
-      "symptom": "An unverified-app screen appears before consent (Nylas documents it as 'Google hasn't verified this app', passable only via Advanced > Go to [app] (unsafe)); after the cap is reached, users see 'Sign in with Google temporarily disabled'.",
+      "symptom": "Test users (Testing mode) see 'Google hasn't verified this app' with the text 'You've been given access to an app that's currently being tested. You should only continue if you know the developer that invited you.' and buttons Continue / Back to safety. Other users of an unverified app that requests sensitive or restricted scopes get a stronger unverified-app screen (Nylas documents it as passable only via Advanced > Go to [app]).",
       "howToProceed": "Make the scopes in your code match Data Access exactly, then finish verification for every sensitive and restricted scope you request. Until then you're limited to 100 users for the project's lifetime.",
       "sourceIds": [
         "s30",
@@ -690,7 +697,7 @@
         "s4",
         "s37"
       ],
-      "confidence": "official"
+      "confidence": "tested"
     },
     {
       "blocker": "Redirect URI doesn't match",
@@ -1029,7 +1036,7 @@
     "note": "Composio provides managed OAuth apps for Gmail, Google Calendar, Google Drive and other Google toolkits (e.g. GMAIL, GOOGLECALENDAR, GOOGLEDRIVE). Users see Composio on the consent screen. For production with your brand you need your own Google Cloud OAuth client, and Gmail read scopes then put you through restricted-scope verification."
   },
   "verification": {
-    "summary": "Curated from 34 official and 3 community sources (plus Composio's Gmail toolkit docs) gathered by research agents on 2026-10-29 and reviewed against the quoted text; hands-on setup attempt pending.",
+    "summary": "Curated from 34 official and 3 community sources (plus Composio's Gmail toolkit docs) gathered by research agents on 2026-10-29 and reviewed against the quoted text; hands-on test-user authorization with gmail.readonly succeeded on 2026-10-30 (scope tiers confirmed; one correction to the warning-screen wording).",
     "probes": [
       {
         "name": "Composio managed auth",
@@ -1063,7 +1070,27 @@
       }
     ],
     "claimChecks": [],
-    "setupAttempts": [],
-    "corrections": []
+    "setupAttempts": [
+      {
+        "date": "2026-10-30",
+        "by": "Human tester (personal Google account, new Cloud project, no billing)",
+        "goal": "Configure Google Auth Platform with Gmail scopes and complete authorization as a test user",
+        "outcome": "succeeded",
+        "findings": [
+          "Gmail scopes didn't appear under Data Access until the Gmail API was enabled in the API Library. The console says 'Only scopes for enabled APIs are listed below', which matches the guide's separate 'Enable the APIs' step.",
+          "Scope labels confirmed: gmail.send under 'Your sensitive scopes' ('Send email on your behalf'); gmail.readonly under 'Your restricted scopes' ('View your email messages and settings').",
+          "As a listed test user the warning read: 'Google hasn't verified this app. You've been given access to an app that's currently being tested. You should only continue if you know the developer that invited you.' It offered a direct Continue button (plus Back to safety), with no Advanced link.",
+          "After consenting, the browser landed on https://example.com/oauth/callback with iss=https://accounts.google.com and a code. Authorization works immediately in Testing mode, with no review, even for a restricted scope.",
+          "Shutting down the project shows it as done, but Google keeps it pending deletion for 30 days (scheduled for Nov 30), during which it can be restored."
+        ]
+      }
+    ],
+    "corrections": [
+      {
+        "original": "Unverified-app screen: 'An unverified-app screen appears before consent (Nylas documents it as 'Google hasn't verified this app', passable only via Advanced > Go to [app] (unsafe)); after the cap is reached, users see 'Sign '",
+        "corrected": "For test users in Testing mode the screen offers a direct Continue button and says the app is 'currently being tested'. The Advanced > Go to [app] path applies to other users of an unverified app.",
+        "how": "Hands-on test on 2026-10-30 with a project in Testing mode and the tester listed as a test user."
+      }
+    ]
   }
 }

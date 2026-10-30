@@ -100,7 +100,7 @@ Slack
    ```
 8. You should see a warning like **"Google hasn't verified this app"**. **Write down the exact wording.** Click **Continue**, then allow access. Did you land on example.com with `?code=`?
 9. Optional: **Audience** → **Publish app**. Note what it asks for or warns about, then cancel.
-10. Afterwards: delete the project (IAM & Admin → Settings → **Shut down**), and remove access at https://myaccount.google.com/permissions.
+10. Afterwards: delete the project (IAM & Admin → Settings → **Shut down**), and remove access at https://myaccount.google.com/permissions. Google keeps a shut-down project "pending deletion" for 30 days (you can still see it under **Resources pending deletion**). That's normal, and nothing more is needed.
 
 **Send back:**
 ```
