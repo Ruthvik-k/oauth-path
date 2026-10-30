@@ -23,6 +23,22 @@ const INDEX_PATH = "guides/_index.json";
 
 const blobEnabled = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 
+// Blob stores are created as either public or private. Guides are public content, so either works;
+// start with BLOB_ACCESS (default private) and switch if the store says otherwise.
+let blobAccess: "public" | "private" = process.env.BLOB_ACCESS === "public" ? "public" : "private";
+
+async function withBlobAccess<T>(fn: (access: "public" | "private") => Promise<T>): Promise<T> {
+  try {
+    return await fn(blobAccess);
+  } catch (e) {
+    const msg = (e as Error).message ?? "";
+    const other = /on a public store/i.test(msg) ? "public" : /on a private store/i.test(msg) ? "private" : null;
+    if (!other || other === blobAccess) throw e;
+    blobAccess = other;
+    return fn(blobAccess);
+  }
+}
+
 // Local development stores generated guides on disk. On Vercel without Blob configured,
 // only /tmp is writable, so guides survive just for the lifetime of the instance.
 const localDir = () =>
@@ -34,7 +50,7 @@ async function readJson<T>(pathname: string): Promise<T | null> {
   await connection();
   if (blobEnabled()) {
     try {
-      const res = await get(pathname, { access: "private", useCache: false });
+      const res = await withBlobAccess((access) => get(pathname, { access, useCache: false }));
       if (!res || res.statusCode !== 200) return null;
       return JSON.parse(await new Response(res.stream).text()) as T;
     } catch {
@@ -51,13 +67,15 @@ async function readJson<T>(pathname: string): Promise<T | null> {
 async function writeJson(pathname: string, value: unknown) {
   const body = JSON.stringify(value, null, 2);
   if (blobEnabled()) {
-    await put(pathname, body, {
-      access: "private",
-      contentType: "application/json",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      cacheControlMaxAge: 60,
-    });
+    await withBlobAccess((access) =>
+      put(pathname, body, {
+        access,
+        contentType: "application/json",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        cacheControlMaxAge: 60,
+      }),
+    );
     return;
   }
   const file = path.join(localDir(), pathname);

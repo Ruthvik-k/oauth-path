@@ -12,7 +12,7 @@ OAuth Path gives a developer a shareable guide per app that answers:
 - **What can an agent do, and where do I take over?** Every step is marked as something an agent can do, something you do, or a wait on the provider. Each guide includes agent-drafted text for the slow parts: scope justifications, reviewer notes, demo scripts, admin-consent emails.
 - **How sure are we?** Every claim carries an evidence label (Tested, Official docs, Community-reported, Inferred) and links to its source. Each guide shows its probes, fact-checks and open questions.
 
-Live demo: _<add Vercel URL>_ · Verification report: `/verification`
+**Live app: https://oauth-path-gray.vercel.app** · Verification report: https://oauth-path-gray.vercel.app/verification · Source: https://github.com/Ruthvik-k/oauth-path
 
 ## What's in the box
 
