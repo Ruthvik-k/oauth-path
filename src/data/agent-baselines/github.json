@@ -1,0 +1,415 @@
+{
+  "app": {
+    "name": "GitHub",
+    "website": "https://github.com",
+    "category": "Developer tools",
+    "developerPortalUrl": "https://github.com/settings/developers",
+    "docsUrl": "https://docs.github.com/en/apps/oauth-apps",
+    "authorizationEndpoint": null
+  },
+  "verdict": {
+    "headline": "GitHub OAuth apps are completely self-serve with zero manual review needed, but GitHub strongly prefers GitHub Apps for fine-grained scopes.",
+    "difficulty": 1,
+    "approvalTier": "self_serve",
+    "timeToFirstConnection": "10–15 minutes to register an app and obtain client credentials.",
+    "timeToFirstConnectionShort": "10–15 min",
+    "timeToProduction": "Same day for personal accounts; organization access requires an org owner to approve the app.",
+    "timeToProductionShort": "Same day; org approvals vary",
+    "handsOnEffort": "Under 30 minutes to configure callback URLs and scope strings.",
+    "cost": "Free (standard API usage limits apply).",
+    "biggestRisk": "OAuth apps grant broad, broad access across whole accounts (e.g., full read/write on all repos) and org access blocks users unless an admin approves."
+  },
+  "ownAppDecision": {
+    "summary": "You can start immediately with Composio's managed GitHub app, but registering your own is self-serve and necessary if you need your own custom app identity.",
+    "reasons": [
+      "Composio offers managed OAuth credentials so you can start testing GitHub integrations immediately without setting up Developer Settings.",
+      "Registering your own GitHub OAuth app is completely free and requires no waiting or external verification.",
+      "You will need your own app if you require custom branding on the consent prompt or dedicated rate limit buckets."
+    ]
+  },
+  "phases": [
+    {
+      "id": "prepare",
+      "name": "Preparation & Decision",
+      "goal": "Decide between a classic OAuth App and a GitHub App, and gather callback parameters.",
+      "duration": "10 minutes",
+      "steps": [
+        {
+          "title": "Choose OAuth App vs. GitHub App",
+          "detail": "Evaluate if classic OAuth scopes (e.g. broad 'repo' scope) suit your agent, or if fine-grained repository permissions (GitHub App) are required.",
+          "owner": "you",
+          "agentHelp": "Summarize architecture trade-offs between GitHub Apps and OAuth Apps for the target agent workflows.",
+          "time": "5 min",
+          "sourceIds": [
+            "s1"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Define Redirect URIs and Scopes",
+          "detail": "Prepare up to 10 valid authorization callback URLs (loopback IP addresses are supported). Determine required scopes such as 'repo' or 'user:email'.",
+          "owner": "agent",
+          "agentHelp": "Draft the exact minimal list of scope strings and validate the formatting of redirect URIs.",
+          "time": "5 min",
+          "sourceIds": [
+            "s2",
+            "s3",
+            "s15"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "name": "App Registration & Integration",
+      "goal": "Register the app in GitHub Developer settings and execute the OAuth flow.",
+      "duration": "15 minutes",
+      "steps": [
+        {
+          "title": "Register New OAuth Application",
+          "detail": "Go to GitHub -> Settings -> Developer settings -> OAuth apps -> New OAuth App. Enter Application Name, Homepage URL, Application Description, and Callback URL.",
+          "owner": "you",
+          "agentHelp": "Pre-fill form values or generate step-by-step instructions for navigating GitHub Developer settings.",
+          "time": "5 min",
+          "sourceIds": [
+            "s2"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Generate Client Secret and Store Credentials",
+          "detail": "Generate a new Client Secret from the app management page and securely store Client ID and Client Secret in environment variables.",
+          "owner": "you",
+          "agentHelp": "Generate sample configuration files or secret manager integration code.",
+          "time": "2 min",
+          "sourceIds": [
+            "s2"
+          ],
+          "confidence": "inferred"
+        },
+        {
+          "title": "Implement Authorization Code Exchange",
+          "detail": "Direct users to the authorization URL, handle the callback code, and POST to https://github.com/login/oauth/access_token to get gho_ tokens.",
+          "owner": "agent",
+          "agentHelp": "Generate complete OAuth 2.0 flow code including exchange handling and optional 8-hour expiring token refreshes.",
+          "time": "8 min",
+          "sourceIds": [
+            "s4",
+            "s5"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "go_live",
+      "name": "Production Launch & Org Approvals",
+      "goal": "Allow external users and organization members to connect seamlessly.",
+      "duration": "Immediate (variable for org approvals)",
+      "steps": [
+        {
+          "title": "Handle Organization Access Restrictions",
+          "detail": "Ensure end users know that if their org restricts OAuth apps, they must click 'Request access' during the OAuth flow for org owners to approve.",
+          "owner": "you",
+          "agentHelp": "Draft user-facing instructions and admin-consent request templates for organization owners.",
+          "time": "5 min",
+          "sourceIds": [
+            "s16"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Monitor Token Limits and API Quotas",
+          "detail": "Track API requests against the standard 5,000 req/hr user bucket and ensure fewer than 10 active tokens are generated per user/app/scope combination.",
+          "owner": "agent",
+          "agentHelp": "Build rate-limit monitoring and token reuse logic to avoid generating duplicate tokens.",
+          "time": "Ongoing",
+          "sourceIds": [
+            "s5",
+            "s11",
+            "s12"
+          ],
+          "confidence": "inferred"
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "item": "GitHub Account with Verified Email",
+      "neededFor": "development",
+      "detail": "You must have a verified email on GitHub to create or authorize OAuth apps.",
+      "sourceIds": [
+        "s3"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Organization Owner Approval",
+      "neededFor": "production",
+      "detail": "When an organization has access restrictions enabled, an org owner must approve the OAuth app before it can access org resources.",
+      "sourceIds": [
+        "s16"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "permissions": [
+    {
+      "name": "repo",
+      "purpose": "Full access to public and private repositories, including code read/write, commit statuses, webhooks, and settings.",
+      "tier": "sensitive",
+      "notes": "Cannot be scoped to read-only for OAuth apps; grants wide write privileges.",
+      "sourceIds": [
+        "s15"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "workflow",
+      "purpose": "Update GitHub Actions workflow files.",
+      "tier": "sensitive",
+      "notes": "Required if the agent modifies .github/workflows content.",
+      "sourceIds": [
+        "s15"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "read:user / user:email",
+      "purpose": "Read user profile data and primary/protected email addresses.",
+      "tier": "basic",
+      "notes": "Used for identifying the authenticated user.",
+      "sourceIds": [
+        "s15"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "admin:repo_hook / write:repo_hook",
+      "purpose": "Manage repository webhooks.",
+      "tier": "sensitive",
+      "notes": "Allows event triggers without full repo control if repo scope isn't granted.",
+      "sourceIds": [
+        "s15"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "nuances": [
+    {
+      "title": "Broad Permission Model",
+      "detail": "OAuth apps grant wide broad permissions across all accessible repos; GitHub recommends GitHub Apps if targeted repository permissions are needed.",
+      "impact": "high",
+      "sourceIds": [
+        "s1"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Per-User Token Caps",
+      "detail": "GitHub limits to 10 active tokens per user/app/scope combination. Issuing an 11th automatically revokes the oldest token.",
+      "impact": "medium",
+      "sourceIds": [
+        "s3"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Rate Limits Share User Quota",
+      "detail": "OAuth token calls count directly against the individual user's standard REST API rate limit (5,000 requests/hr).",
+      "impact": "medium",
+      "sourceIds": [
+        "s12"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "Organization OAuth Access Restrictions",
+      "symptom": "End user authorizes the app, but organization resources/repositories are invisible or return 404 errors.",
+      "howToProceed": "The user must request access for their organization during the consent flow, or an org owner must approve the application in Organization Settings -> OAuth application policy.",
+      "sourceIds": [
+        "s16"
+      ],
+      "confidence": "official"
+    },
+    {
+      "blocker": "Flagged User Account",
+      "symptom": "User sees error during authorization: 'This account is flagged, and therefore cannot authorize a third party application'.",
+      "howToProceed": "The user must submit an appeal to GitHub Support/Reinstatement; the app developer cannot fix this.",
+      "sourceIds": [
+        "s3"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "agentVsYou": {
+    "agentCan": [
+      "Draft required scope lists and parse space-separated scope strings",
+      "Generate OAuth 2.0 authorization request URLs and token exchange logic",
+      "Implement token refresh handling if expiring tokens are enabled",
+      "Detect rate-limit response headers and implement retry backoff"
+    ],
+    "youMust": [
+      "Log into GitHub and register the application in Developer settings",
+      "Generate and copy the Client Secret safely to secure environment storage",
+      "Obtain approval from GitHub organization owners if accessing private org resources"
+    ]
+  },
+  "drafts": [
+    {
+      "title": "Organization Owner Approval Request",
+      "purpose": "Template for end users to send to their GitHub Organization Admin when an app is restricted",
+      "content": "Hi [ADMIN_NAME],\n\nI am setting up [APP_NAME] to help with [USE_CASE_DESCRIPTION]. When connecting my GitHub account, organization access restrictions prevented [APP_NAME] from interacting with our organization's repositories.\n\nCould you please approve [APP_NAME] under Organization Settings -> OAuth application policy? You can review the requested scopes ([REQUESTED_SCOPES]) and details here: [APP_WEBSITE_OR_URL].\n\nThanks,\n[YOUR_NAME]"
+    },
+    {
+      "title": "User Setup Instructions for Org Consent",
+      "purpose": "In-app copy explaining why org repositories might not show up",
+      "content": "Connecting to GitHub Organization Repositories:\n\nIf your organization has OAuth restrictions enabled, you will see a 'Grant' or 'Request' button next to your organization's name during GitHub authorization. Please click 'Grant' (if you are an owner) or 'Request' so your administrator can approve access for [APP_NAME]."
+    }
+  ],
+  "openQuestions": [
+    "Exact web authorization URL endpoint (e.g., /login/oauth/authorize) is omitted in provided source excerpts.",
+    "PKCE extension support for public clients is not detailed in the provided GitHub OAuth documentation.",
+    "Not confirmed by its cited source: \"Monitor Token Limits and API Quotas: Track API requests against the standard 5,000 req/hr user bucket and ensure fewer than 10 active tokens are generated per u\""
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Differences between GitHub Apps and OAuth apps - GitHub Docs",
+      "url": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/differences-between-github-apps-and-oauth-apps",
+      "kind": "official"
+    },
+    {
+      "id": "s2",
+      "title": "Creating an OAuth app - GitHub Docs",
+      "url": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app",
+      "kind": "official"
+    },
+    {
+      "id": "s3",
+      "title": "Authorizing OAuth apps - GitHub Docs",
+      "url": "https://docs.github.com/en/apps/oauth-apps/using-oauth-apps/authorizing-oauth-apps",
+      "kind": "official"
+    },
+    {
+      "id": "s4",
+      "title": "REST API endpoints for OAuth authorizations - GitHub Docs",
+      "url": "https://docs.github.com/en/rest/apps/oauth-applications",
+      "kind": "official"
+    },
+    {
+      "id": "s5",
+      "title": "Authorizing OAuth apps - GitHub Docs",
+      "url": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps",
+      "kind": "official"
+    },
+    {
+      "id": "s11",
+      "title": "Rate limits for OAuth apps - GitHub Enterprise Cloud Docs",
+      "url": "https://docs.github.com/enterprise-cloud@latest/apps/oauth-apps/building-oauth-apps/rate-limits-for-oauth-apps",
+      "kind": "official"
+    },
+    {
+      "id": "s12",
+      "title": "Rate limits for the REST API - GitHub Docs",
+      "url": "https://docs.github.com/rest/using-the-rest-api/rate-limits-for-the-rest-api",
+      "kind": "official"
+    },
+    {
+      "id": "s15",
+      "title": "Scopes for OAuth apps - GitHub Docs",
+      "url": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps",
+      "kind": "official"
+    },
+    {
+      "id": "s16",
+      "title": "About OAuth app access restrictions - GitHub Docs",
+      "url": "https://docs.github.com/en/organizations/managing-oauth-access-to-your-organizations-data/about-oauth-app-access-restrictions",
+      "kind": "official"
+    }
+  ],
+  "slug": "github",
+  "origin": "generated",
+  "createdAt": "2026-10-30T06:27:16.061Z",
+  "lastCheckedAt": "2026-10-30T06:27:16.061Z",
+  "model": "gemini-3.5-flash + gemini-3.5-flash-lite (Gemini, agent search via Tavily)",
+  "query": "GitHub",
+  "composio": {
+    "toolkitSlug": "GITHUB",
+    "managed": true,
+    "note": "Composio provides a managed OAuth app for GITHUB, so you can prototype without registering your own. You still need your own app for your branding on the consent screen, custom scopes, dedicated rate limits, or enterprise customers."
+  },
+  "verification": {
+    "summary": "Agent-generated from 9 sources. The fact-check re-read the cited pages for 6 key claims: 5 supported, 0 partially supported, 1 not supported (downgraded to inferred), 0 could not be fetched. No human has tried this setup yet.",
+    "probes": [
+      {
+        "name": "Composio managed auth",
+        "target": "docs.composio.dev/toolkits/managed-auth",
+        "ok": true,
+        "result": "Managed OAuth available (toolkit GITHUB)."
+      },
+      {
+        "name": "Developer portal reachable",
+        "target": "https://github.com/settings/developers",
+        "ok": true,
+        "result": "HTTP 200 (redirected to github.com)"
+      },
+      {
+        "name": "Cited source links",
+        "target": "9 sources",
+        "ok": true,
+        "result": "9/9 cited pages load."
+      }
+    ],
+    "claimChecks": [
+      {
+        "claim": "Broad Permission Model: OAuth apps grant wide broad permissions across all accessible repos; GitHub recommends GitHub Apps if targeted repository permissions are needed.",
+        "location": "nuances[0]",
+        "sourceUrl": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/differences-between-github-apps-and-oauth-apps",
+        "verdict": "supported",
+        "evidence": "In general, GitHub Apps are preferred to OAuth apps because they use fine-grained permissions, give more control over which repositories the app can access, and use short-lived tokens."
+      },
+      {
+        "claim": "Organization Owner Approval: When an organization has access restrictions enabled, an org owner must approve the OAuth app before it can access org resources.",
+        "location": "requirements[1]",
+        "sourceUrl": "https://docs.github.com/en/organizations/managing-oauth-access-to-your-organizations-data/about-oauth-app-access-restrictions",
+        "verdict": "supported",
+        "evidence": "When OAuth app access restrictions are enabled, organization members and outside collaborators cannot authorize OAuth app access to organization resources. Users can request owner approval for OAuth apps they d like to use, and organization owners receive a notification of pending requests."
+      },
+      {
+        "claim": "Handle Organization Access Restrictions: Ensure end users know that if their org restricts OAuth apps, they must click 'Request access' during the OAuth flow for org owners to approve.",
+        "location": "phases[2].steps[0]",
+        "sourceUrl": "https://docs.github.com/en/organizations/managing-oauth-access-to-your-organizations-data/about-oauth-app-access-restrictions",
+        "verdict": "supported",
+        "evidence": "Users can request owner approval for OAuth apps they d like to use, and organization owners receive a notification of pending requests."
+      },
+      {
+        "claim": "Monitor Token Limits and API Quotas: Track API requests against the standard 5,000 req/hr user bucket and ensure fewer than 10 active tokens are generated per user/app/scope combination.",
+        "location": "phases[2].steps[1]",
+        "sourceUrl": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps",
+        "verdict": "not_supported",
+        "evidence": "The page does not contain any mention of the standard 5,000 req/hr user bucket."
+      },
+      {
+        "claim": "repo is classified as sensitive. Cannot be scoped to read-only for OAuth apps; grants wide write privileges.",
+        "location": "permissions[0]",
+        "sourceUrl": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps",
+        "verdict": "supported",
+        "evidence": "repo Grants full access to public and private repositories including read and write access to code, commit statuses, repository invitations, collaborators, deployment statuses, and repository webhooks."
+      },
+      {
+        "claim": "workflow is classified as sensitive. Required if the agent modifies .github/workflows content.",
+        "location": "permissions[1]",
+        "sourceUrl": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps",
+        "verdict": "supported",
+        "evidence": "workflow Grants the ability to add and update GitHub Actions workflow files."
+      }
+    ],
+    "setupAttempts": [],
+    "corrections": []
+  }
+}

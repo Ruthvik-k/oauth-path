@@ -128,7 +128,10 @@ async function agentTrack(app: ResolvedApp, track: (typeof RESEARCH_TRACKS)[numb
       return body ? { ...r, body, fullPage: !!text } : null;
     }),
   );
-  const sources = pages.filter((p): p is NonNullable<typeof p> => !!p);
+  const sources = pages
+    .filter((p): p is NonNullable<typeof p> => !!p)
+    // Broad searches surface generic OAuth pages from other products; keep only pages that mention this app.
+    .filter((p) => p.url.toLowerCase().includes(brandOf(app.website).toLowerCase()) || p.body.toLowerCase().includes(app.name.toLowerCase()));
   if (!sources.length) throw new Error(`Web search returned nothing usable for ${app.name}.`);
   const sourceBlock = sources
     .map((s, i) => `[${i + 1}] ${s.title}\nURL: ${s.url}\n${s.fullPage ? "PAGE EXCERPT" : "SEARCH SNIPPET ONLY"}:\n${s.body}`)

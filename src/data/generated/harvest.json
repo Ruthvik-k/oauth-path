@@ -1,0 +1,374 @@
+{
+  "app": {
+    "name": "Harvest",
+    "website": "https://www.getharvest.com",
+    "category": "Time Tracking",
+    "developerPortalUrl": "https://id.getharvest.com",
+    "docsUrl": "https://help.getharvest.com/api-v2/authentication-api",
+    "authorizationEndpoint": "https://id.getharvest.com/oauth2/authorize"
+  },
+  "verdict": {
+    "headline": "Harvest provides self-serve OAuth2 application registration via Harvest ID with immediate access.",
+    "difficulty": 1,
+    "approvalTier": "self_serve",
+    "timeToFirstConnection": "10–15 minutes to register an application in Harvest ID and complete code flow.",
+    "timeToFirstConnectionShort": "10–15 min",
+    "timeToProduction": "Immediate upon developer setup; no external app review process is documented.",
+    "timeToProductionShort": "Immediate",
+    "handsOnEffort": "Minimal: fill out application registration form in Harvest ID and handle standard OAuth2 authorization code exchange.",
+    "cost": "Free",
+    "biggestRisk": "Missing mandatory headers like User-Agent or attempting admin operations without requisite account roles returns 403 or 400 errors."
+  },
+  "ownAppDecision": {
+    "summary": "You can use Composio managed auth to skip setup, but creating your own OAuth app is simple and self-serve if custom branding or direct client secrets are preferred.",
+    "reasons": [
+      "Composio provides a managed OAuth app for Harvest for fast prototyping.",
+      "Registering your own app gives custom branding on the consent screen and direct control of OAuth credentials."
+    ]
+  },
+  "phases": [
+    {
+      "id": "prepare",
+      "name": "Prepare App Details",
+      "goal": "Determine target product access, redirect URL, and account access mode.",
+      "duration": "5 min",
+      "steps": [
+        {
+          "title": "Define application settings",
+          "detail": "Decide on your Redirect URL, Multi Account preference, and Product access (Harvest, Forecast, or both).",
+          "owner": "you",
+          "agentHelp": "Draft configuration requirements and validate HTTPS redirect URIs.",
+          "time": "5 min",
+          "sourceIds": [
+            "s2"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "name": "Register and Implement OAuth",
+      "goal": "Obtain client ID, client secret, and exchange authorization codes for access tokens.",
+      "duration": "15 min",
+      "steps": [
+        {
+          "title": "Register OAuth2 Client in Harvest ID",
+          "detail": "Navigate to the Developers section of Harvest ID and register a new OAuth2 Application.",
+          "owner": "you",
+          "agentHelp": "Provide step-by-step guidance and form inputs for application creation.",
+          "time": "5 min",
+          "sourceIds": [
+            "s2"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Implement OAuth authorization flow",
+          "detail": "Direct users to https://id.getharvest.com/oauth2/authorize with client_id and response_type=code, then exchange code for tokens.",
+          "owner": "agent",
+          "agentHelp": "Generate complete authorization request URLs and token exchange logic.",
+          "time": "10 min",
+          "sourceIds": [
+            "s2"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "go_live",
+      "name": "Deploy Integration",
+      "goal": "Enable end users to connect their Harvest accounts to your agent.",
+      "duration": "Immediate",
+      "steps": [
+        {
+          "title": "Include required headers on API calls",
+          "detail": "Ensure all API requests send a User-Agent header and Harvest-Account-Id header for multi-account calls.",
+          "owner": "agent",
+          "agentHelp": "Inject required User-Agent and Harvest-Account-Id headers into API client requests.",
+          "time": "5 min",
+          "sourceIds": [
+            "s2",
+            "s7"
+          ],
+          "confidence": "official"
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "item": "Harvest ID Account",
+      "neededFor": "development",
+      "detail": "Required to access the Developers section in Harvest ID and register an OAuth2 Client.",
+      "sourceIds": [
+        "s2"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "User-Agent Header",
+      "neededFor": "production",
+      "detail": "Every API request must include a descriptive User-Agent header (e.g., MyApp (email@example.com)).",
+      "sourceIds": [
+        "s7"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "permissions": [
+    {
+      "name": "harvest:{ACCOUNT_ID} / harvest:all",
+      "purpose": "Access time tracking, users, projects, and approvals within Harvest accounts.",
+      "tier": "basic",
+      "notes": "Permissions inherit directly from the authorizing user's account role and custom permissions.",
+      "sourceIds": [
+        "s2",
+        "s3"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "forecast:{ACCOUNT_ID} / forecast:all",
+      "purpose": "Access scheduling and project planning data in Forecast.",
+      "tier": "basic",
+      "notes": "Granted when Forecast product scope is enabled and authorized by user.",
+      "sourceIds": [
+        "s2"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "nuances": [
+    {
+      "title": "User-Agent Header Requirement",
+      "detail": "Omitting a User-Agent header causes API calls to fail with 400 Bad Request.",
+      "impact": "high",
+      "sourceIds": [
+        "s7"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Role-Based API Restrictions",
+      "detail": "Resource access is tied to the authorizing user's role; non-admins receive 403 Forbidden on privileged endpoints.",
+      "impact": "high",
+      "sourceIds": [
+        "s3",
+        "s5",
+        "s6"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Multi-Account Request Routing",
+      "detail": "Multi-account applications must send the Harvest-Account-Id header on requests to specify target account context.",
+      "impact": "medium",
+      "sourceIds": [
+        "s2"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "Missing User-Agent Header",
+      "symptom": "HTTP 400 Bad Request with body 'User-Agent header required'",
+      "howToProceed": "Add a descriptive User-Agent header containing application name and contact email to all outbound requests.",
+      "sourceIds": [
+        "s7"
+      ],
+      "confidence": "official"
+    },
+    {
+      "blocker": "Insufficient User Role Permissions",
+      "symptom": "HTTP 403 Forbidden when calling restricted endpoints like /v2/permissions or billable rates",
+      "howToProceed": "Ensure the authorizing user has the necessary Admin or Manager role within the target Harvest account.",
+      "sourceIds": [
+        "s3",
+        "s5"
+      ],
+      "confidence": "official"
+    },
+    {
+      "blocker": "Timesheet Approvals Disabled",
+      "symptom": "HTTP 403 Forbidden with message 'Timesheet approvals are not enabled for this company'",
+      "howToProceed": "Enable timesheet approvals in the target Harvest company settings prior to calling approvals endpoints.",
+      "sourceIds": [
+        "s7"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "agentVsYou": {
+    "agentCan": [
+      "Construct OAuth authorization URLs and code exchange logic.",
+      "Format API requests with required User-Agent and Harvest-Account-Id headers.",
+      "Handle JSON request payload formatting and ISO date parameters."
+    ],
+    "youMust": [
+      "Log into Harvest ID and register the OAuth2 Client.",
+      "Configure app settings such as Redirect URL, Products, and Multi Account preference."
+    ]
+  },
+  "drafts": [
+    {
+      "title": "App Registration Form Setup",
+      "purpose": "Provide values to enter into the Harvest Developer Portal during registration.",
+      "content": "Application Name: [YOUR_APP_NAME]\nRedirect URL: https://[YOUR_DOMAIN]/oauth/callback\nProducts: Harvest, Forecast\nMulti Account: Yes"
+    },
+    {
+      "title": "HTTP User-Agent Header Example",
+      "purpose": "Standard User-Agent format to include in API request headers.",
+      "content": "User-Agent: [YOUR_APP_NAME] ([YOUR_CONTACT_EMAIL])"
+    }
+  ],
+  "openQuestions": [
+    "Does Harvest enforce PKCE for authorization code exchange?",
+    "What are the precise access token and refresh token lifetime durations?",
+    "Are there explicit rate limits imposed per application or account?"
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Authentication",
+      "url": "https://help.getharvest.com/api-v2/authentication-api",
+      "kind": "official"
+    },
+    {
+      "id": "s2",
+      "title": "Authentication",
+      "url": "https://help.getharvest.com/api-v2/authentication-api/authentication/authentication",
+      "kind": "official"
+    },
+    {
+      "id": "s3",
+      "title": "Permissions",
+      "url": "https://help.getharvest.com/api-v2/roles-api/roles/permissions",
+      "kind": "official"
+    },
+    {
+      "id": "s4",
+      "title": "Approvals API",
+      "url": "https://help.getharvest.com/api-v2/approvals-api",
+      "kind": "official"
+    },
+    {
+      "id": "s5",
+      "title": "User Billable Rates",
+      "url": "https://help.getharvest.com/api-v2/users-api/users/billable-rates",
+      "kind": "official"
+    },
+    {
+      "id": "s6",
+      "title": "User Cost Rates",
+      "url": "https://help.getharvest.com/api-v2/users-api/users/cost-rates",
+      "kind": "official"
+    },
+    {
+      "id": "s7",
+      "title": "Approvals",
+      "url": "https://help.getharvest.com/api-v2/approvals-api/approvals/approvals",
+      "kind": "official"
+    },
+    {
+      "id": "s8",
+      "title": "Authentication",
+      "url": "https://help.getharvest.com/api-v2/authentication-api/index",
+      "kind": "official"
+    }
+  ],
+  "slug": "harvest",
+  "origin": "generated",
+  "createdAt": "2026-10-29T06:47:01.831Z",
+  "lastCheckedAt": "2026-10-29T06:47:01.831Z",
+  "model": "gemini-3.5-flash + gemini-3.5-flash-lite (Gemini, agent search via DuckDuckGo)",
+  "query": "Harvest time tracking",
+  "composio": {
+    "toolkitSlug": "HARVEST",
+    "managed": true,
+    "note": "Composio provides a managed OAuth app for HARVEST, so you can prototype without registering your own. You still need your own app for your branding on the consent screen, custom scopes, dedicated rate limits, or enterprise customers."
+  },
+  "verification": {
+    "summary": "Agent-generated from 8 sources. The fact-check re-read the cited pages for 6 key claims: 3 supported, 3 partially supported, 0 not supported (downgraded to inferred), 0 could not be fetched. No human has tried this setup yet.",
+    "probes": [
+      {
+        "name": "Composio managed auth",
+        "target": "docs.composio.dev/toolkits/managed-auth",
+        "ok": true,
+        "result": "Managed OAuth available (toolkit HARVEST)."
+      },
+      {
+        "name": "Developer portal reachable",
+        "target": "https://id.getharvest.com",
+        "ok": true,
+        "result": "HTTP 200 (redirected to id.getharvest.com)"
+      },
+      {
+        "name": "OAuth authorize endpoint",
+        "target": "https://id.getharvest.com/oauth2/authorize",
+        "ok": true,
+        "result": "HTTP 302 → redirects to id.getharvest.com/sessions/new. The endpoint is live and handled a request with a fake client_id, as expected."
+      },
+      {
+        "name": "OAuth/OIDC discovery metadata",
+        "target": "https://id.getharvest.com/.well-known/oauth-authorization-server",
+        "ok": true,
+        "result": "Found. authorization_endpoint=https://id.getharvest.com/oauth2/authorize; PKCE: plain, S256; scopes not advertised."
+      },
+      {
+        "name": "Cited source links",
+        "target": "8 sources",
+        "ok": true,
+        "result": "8/8 cited pages load."
+      }
+    ],
+    "claimChecks": [
+      {
+        "claim": "User-Agent Header Requirement: Omitting a User-Agent header causes API calls to fail with 400 Bad Request.",
+        "location": "nuances[0]",
+        "sourceUrl": "https://help.getharvest.com/api-v2/approvals-api/approvals/approvals",
+        "verdict": "supported",
+        "evidence": "400 A required User-Agent header is missing ( User-Agent header required ), or a page or per_page value is outside its allowed range."
+      },
+      {
+        "claim": "Role-Based API Restrictions: Resource access is tied to the authorizing user's role; non-admins receive 403 Forbidden on privileged endpoints.",
+        "location": "nuances[1]",
+        "sourceUrl": "https://help.getharvest.com/api-v2/roles-api/roles/permissions",
+        "verdict": "partially_supported",
+        "evidence": "You must have permission to manage all users in order to interact with the /v2/permissions endpoint. Insufficient permissions will result in a 403 Forbidden status code."
+      },
+      {
+        "claim": "User-Agent Header: Every API request must include a descriptive User-Agent header (e.g., MyApp (email@example.com)).",
+        "location": "requirements[1]",
+        "sourceUrl": "https://help.getharvest.com/api-v2/approvals-api/approvals/approvals",
+        "verdict": "supported",
+        "evidence": "A required User-Agent header is missing ( User-Agent header required )"
+      },
+      {
+        "claim": "Include required headers on API calls: Ensure all API requests send a User-Agent header and Harvest-Account-Id header for multi-account calls.",
+        "location": "phases[2].steps[0]",
+        "sourceUrl": "https://help.getharvest.com/api-v2/authentication-api/authentication/authentication",
+        "verdict": "partially_supported",
+        "evidence": "Header authentication example curl -H \"Authorization: Bearer $ACCESS_TOKEN \" \\ -H \"Harvest-Account-Id: $ACCOUNT_ID \" \\ -H \"User-Agent: MyApp ( [email protected] )\" \\ https://api.harvestapp.com/v2/users/me"
+      },
+      {
+        "claim": "Missing User-Agent Header: HTTP 400 Bad Request with body 'User-Agent header required'",
+        "location": "blockers[0]",
+        "sourceUrl": "https://help.getharvest.com/api-v2/approvals-api/approvals/approvals",
+        "verdict": "supported",
+        "evidence": "400 A required User-Agent header is missing ( User-Agent header required ), or a page or per_page value is outside its allowed range."
+      },
+      {
+        "claim": "Insufficient User Role Permissions: HTTP 403 Forbidden when calling restricted endpoints like /v2/permissions or billable rates",
+        "location": "blockers[1]",
+        "sourceUrl": "https://help.getharvest.com/api-v2/roles-api/roles/permissions",
+        "verdict": "partially_supported",
+        "evidence": "You must have permission to manage all users in order to interact with the /v2/permissions endpoint. Insufficient permissions will result in a 403 Forbidden status code."
+      }
+    ],
+    "setupAttempts": [],
+    "corrections": []
+  }
+}

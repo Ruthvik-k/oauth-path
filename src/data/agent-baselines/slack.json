@@ -1,0 +1,545 @@
+{
+  "app": {
+    "name": "Slack",
+    "website": "https://slack.com",
+    "category": "Communication",
+    "developerPortalUrl": "https://api.slack.com/apps",
+    "docsUrl": "https://docs.slack.dev/authentication/installing-with-oauth",
+    "authorizationEndpoint": "https://slack.com/oauth/v2/authorize"
+  },
+  "verdict": {
+    "headline": "Slack offers self-serve public OAuth 2.0 with instant local setup, but Marketplace listing requires formal review and strict scope checks.",
+    "difficulty": 2,
+    "approvalTier": "self_serve",
+    "timeToFirstConnection": "15–30 minutes to create an app in the Slack App Management portal and authorize it in your test workspace.",
+    "timeToFirstConnectionShort": "15–30 min",
+    "timeToProduction": "Same day for external workspace installs via public OAuth link; several days to weeks if submitting for Slack Marketplace listing or approval.",
+    "timeToProductionShort": "Same day (weeks for Marketplace)",
+    "handsOnEffort": "1–2 hours to configure manifests, HTTPS callbacks, and request signing code.",
+    "cost": "Free",
+    "biggestRisk": "Mixing legacy umbrella scopes (e.g. 'bot') with modern granular scopes causes authorization failures, and app configuration locks once listed."
+  },
+  "ownAppDecision": {
+    "summary": "You can use Composio managed auth for prototyping, but should build your own Slack OAuth app for production branding, custom scopes, or Marketplace presence.",
+    "reasons": [
+      "Composio provides a managed OAuth app for Slack to prototype immediately without registration.",
+      "Custom branding on the Slack installation consent screen requires your own registered app.",
+      "Custom scope combinations, dedicated API rate limits, and Marketplace listing require an owned app."
+    ]
+  },
+  "phases": [
+    {
+      "id": "prepare",
+      "name": "Prepare App Settings & Manifest",
+      "goal": "Define scopes and prepare your app configuration manifest.",
+      "duration": "15–30 min",
+      "steps": [
+        {
+          "title": "Define scopes and token strategy",
+          "detail": "Choose between Bot tokens (xoxb-) and User tokens (xoxp-) based on whether your agent acts as its own entity or on behalf of a user. Select modern granular scopes like channels:read and chat:write rather than legacy scopes.",
+          "owner": "agent",
+          "agentHelp": "Draft the exact minimal scope list and select bot vs user token requirements based on the desired features.",
+          "time": "10 min",
+          "sourceIds": [
+            "s5",
+            "s17",
+            "s18"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Prepare App Manifest",
+          "detail": "Use Slack App Manifests to avoid selecting scopes individually in the UI. Ensure HTTPS endpoints are defined for redirect URIs, interactivity, and event subscriptions.",
+          "owner": "agent",
+          "agentHelp": "Generate the complete JSON or YAML App Manifest including OAuth redirect URIs and scopes.",
+          "time": "10 min",
+          "sourceIds": [
+            "s1",
+            "s5",
+            "s21"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "name": "Register & Build OAuth Integration",
+      "goal": "Obtain app credentials, implement the v2 OAuth flow, and verify workspace connections.",
+      "duration": "1–2 hours",
+      "steps": [
+        {
+          "title": "Create app on Slack App Management",
+          "detail": "Navigate to the App Management portal and create an app either manually or by pasting your generated App Manifest.",
+          "owner": "you",
+          "agentHelp": "Validate that all configured redirect URIs use secure HTTPS protocols and match exact domain rules.",
+          "time": "10 min",
+          "sourceIds": [
+            "s1",
+            "s4",
+            "s5"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Implement Authorization Code Flow",
+          "detail": "Direct users to https://slack.com/oauth/v2/authorize with space- or comma-delimited scopes. Exchange the auth code at https://slack.com/api/oauth.v2.access within 10 minutes.",
+          "owner": "agent",
+          "agentHelp": "Generate server code to initiate OAuth, handle callback verification, and perform token exchange.",
+          "time": "45 min",
+          "sourceIds": [
+            "s1",
+            "s2",
+            "s3"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Test token rotation and rate limits",
+          "detail": "If token rotation is enabled, refresh tokens using grant_type=refresh_token on oauth.v2.access. Implement handling for standard Web API rate-limit tiers.",
+          "owner": "agent",
+          "agentHelp": "Generate token refresh routines and rate-limit backoff logic adhering to Slack Tier 1-4 limits.",
+          "time": "30 min",
+          "sourceIds": [
+            "s2",
+            "s5",
+            "s19"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "go_live",
+      "name": "Public Distribution & Marketplace Listing",
+      "goal": "Enable public distribution for unlisted use or submit your app for Slack Marketplace review.",
+      "duration": "1 day (unlisted) to several weeks (Marketplace review)",
+      "steps": [
+        {
+          "title": "Enable Public Distribution",
+          "detail": "Navigate to Manage Distribution in the app settings and activate Public Distribution so external workspace admins can authorize your app via HTTPS OAuth links.",
+          "owner": "you",
+          "agentHelp": "Verify that all public distribution requirements, including HTTPS redirect URIs, are met.",
+          "time": "15 min",
+          "sourceIds": [
+            "s16"
+          ],
+          "confidence": "community"
+        },
+        {
+          "title": "Prepare Marketplace submission materials",
+          "detail": "Prepare scope justifications, privacy policy links, security documentation, and a video demonstration of your agent if submitting for Marketplace approval.",
+          "owner": "you",
+          "agentHelp": "Draft text for scope justifications, app descriptions, and testing instructions for Slack reviewers.",
+          "time": "1–2 hours",
+          "sourceIds": [
+            "s10",
+            "s11"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Submit for Marketplace Review",
+          "detail": "Submit your app via the App Management portal. Automated tests check TLS and request signatures, followed by manual review by Slack.",
+          "owner": "provider",
+          "agentHelp": null,
+          "time": "Several business days (waiting)",
+          "sourceIds": [
+            "s9",
+            "s10",
+            "s13"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "maintain",
+      "name": "Maintain & Update App",
+      "goal": "Manage scope additions and re-review requirements for locked Marketplace apps.",
+      "duration": "Ongoing",
+      "steps": [
+        {
+          "title": "Manage scope additions and re-authorizations",
+          "detail": "Adding new scopes requires re-approval by workspace admins. If the app is listed on the Marketplace, updates lock the app until Slack re-reviews the changes.",
+          "owner": "you",
+          "agentHelp": "Calculate scope unions when requesting step-up authorization to avoid dropping existing tokens.",
+          "time": "Ongoing",
+          "sourceIds": [
+            "s9",
+            "s10",
+            "s20",
+            "s22"
+          ],
+          "confidence": "official"
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "item": "HTTPS Endpoint",
+      "neededFor": "development",
+      "detail": "All OAuth redirect URIs, event endpoints, and command URLs must use valid HTTPS protocols.",
+      "sourceIds": [
+        "s1",
+        "s3",
+        "s16"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Slack Workspace",
+      "neededFor": "development",
+      "detail": "A Slack workspace (or Enterprise grid org) is required to register and test the application.",
+      "sourceIds": [
+        "s1"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Privacy Policy & TOS Links",
+      "neededFor": "production",
+      "detail": "Public distribution and Marketplace approval require clear privacy policy and terms of service URLs.",
+      "sourceIds": [
+        "s11"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "permissions": [
+    {
+      "name": "channels:read",
+      "purpose": "View basic information about public channels in the workspace.",
+      "tier": "basic",
+      "notes": "Standard scope for channel discovery.",
+      "sourceIds": [
+        "s17",
+        "s18"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "channels:history",
+      "purpose": "Read message history in public channels.",
+      "tier": "sensitive",
+      "notes": "History scopes trigger additional review scrutiny during Marketplace listing.",
+      "sourceIds": [
+        "s13",
+        "s17"
+      ],
+      "confidence": "inferred"
+    },
+    {
+      "name": "chat:write",
+      "purpose": "Post messages as the bot or user in authorized channels.",
+      "tier": "basic",
+      "notes": "Essential scope for response-generating agents.",
+      "sourceIds": [
+        "s17",
+        "s18"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "app_mentions:read",
+      "purpose": "Subscribe to event notifications when the bot is mentioned in a channel.",
+      "tier": "basic",
+      "notes": "Used for event-driven agent triggers.",
+      "sourceIds": [
+        "s18"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "admin.*",
+      "purpose": "Perform organization and administrative configuration management.",
+      "tier": "restricted",
+      "notes": "Restricted scope; apps requesting admin.* are ineligible for the Slack Marketplace.",
+      "sourceIds": [
+        "s10",
+        "s17"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "nuances": [
+    {
+      "title": "Legacy scope mixing failure",
+      "detail": "Combining legacy umbrella scopes (e.g., 'bot') with modern granular scopes returns an 'invalid_scope' error from Slack.",
+      "impact": "high",
+      "sourceIds": [
+        "s17"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Exact redirect URI matching",
+      "detail": "The redirect URI path provided during authorization must strictly match or be a sub-directory of the pre-configured URI, and must match identically between authorize and token exchange.",
+      "impact": "high",
+      "sourceIds": [
+        "s1",
+        "s3"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Scope Union Trap on Step-Up",
+      "detail": "When requesting additional scopes dynamically, failing to request the full union of existing and new scopes causes Slack to revoke previously granted permissions.",
+      "impact": "medium",
+      "sourceIds": [
+        "s22"
+      ],
+      "confidence": "community"
+    },
+    {
+      "title": "Marketplace Configuration Lock",
+      "detail": "Once an app is listed on the Slack Marketplace, changing app settings or scopes requires submitting an update for re-review before changes take effect.",
+      "impact": "medium",
+      "sourceIds": [
+        "s9",
+        "s10"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "OAuth Scope Mismatch Error",
+      "symptom": "OAuth error: invalid_scope: Cannot request service scope (bot) with deprecated scopes",
+      "howToProceed": "Remove legacy umbrella scopes like 'bot' and replace them entirely with modern granular scopes (e.g., 'channels:read', 'chat:write').",
+      "sourceIds": [
+        "s17"
+      ],
+      "confidence": "official"
+    },
+    {
+      "blocker": "Bad Redirect URI Error",
+      "symptom": "bad_redirect_uri error during token exchange",
+      "howToProceed": "Ensure the redirect_uri parameter passed to oauth.v2.access matches character-for-character the redirect_uri passed to oauth/v2/authorize.",
+      "sourceIds": [
+        "s1"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "agentVsYou": {
+    "agentCan": [
+      "Draft full JSON or YAML App Manifests containing granular scopes.",
+      "Generate backend authorization code and token exchange logic.",
+      "Validate redirect URI patterns and calculate union scope sets for step-up auth."
+    ],
+    "youMust": [
+      "Create the Slack app entry in the Slack App Management portal.",
+      "Perform manual testing in your test Slack workspace.",
+      "Record demo videos and submit for Marketplace review if listing publicly."
+    ]
+  },
+  "drafts": [
+    {
+      "title": "Scope Justification for Marketplace Review",
+      "purpose": "Provide justification to Slack reviewers for requested workspace scopes.",
+      "content": "Our application [APP_NAME] uses the 'channels:read' and 'chat:write' scopes to identify relevant user queries in authorized channels and respond with AI-generated assistance. The scope 'channels:history' is requested strictly to read recent message context in channels where [APP_NAME] is explicitly invoked, enabling context-aware responses without storing unauthorized conversation data."
+    },
+    {
+      "title": "Testing Instructions for Reviewers",
+      "purpose": "Instructions provided in the Slack submission portal for app reviewers.",
+      "content": "To test [APP_NAME]: 1. Install the app via [INSTALL_URL] into your test workspace. 2. Invite @[BOT_NAME] to any public channel using /invite @[BOT_NAME]. 3. Mention @[BOT_NAME] with the prompt 'hello' to verify event subscription handling and message response."
+    }
+  ],
+  "openQuestions": [
+    "Are there mandatory phone or identity verification steps required for newly registered developer accounts before publishing?",
+    "What are the precise numeric user or workspace installation caps imposed on unapproved public OAuth apps prior to Marketplace listing?",
+    "Not confirmed by its cited source: \"channels:history is classified as sensitive. History scopes trigger additional review scrutiny during Marketplace listing.\""
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Installing via OAuth authorization code flow",
+      "url": "https://docs.slack.dev/authentication/installing-with-oauth",
+      "kind": "official"
+    },
+    {
+      "id": "s2",
+      "title": "oauth.v2.access method",
+      "url": "https://docs.slack.dev/reference/methods/oauth.v2.access",
+      "kind": "official"
+    },
+    {
+      "id": "s3",
+      "title": "Legacy authentication",
+      "url": "https://docs.slack.dev/legacy/legacy-authentication",
+      "kind": "official"
+    },
+    {
+      "id": "s4",
+      "title": "authorizations:read scope",
+      "url": "https://docs.slack.dev/reference/scopes/authorizations.read",
+      "kind": "official"
+    },
+    {
+      "id": "s5",
+      "title": "Tokens",
+      "url": "https://docs.slack.dev/authentication/tokens",
+      "kind": "official"
+    },
+    {
+      "id": "s9",
+      "title": "FAQ: Slack’s Marketplace review process",
+      "url": "https://slack.com/blog/developers/slack-marketplace-review-process",
+      "kind": "official"
+    },
+    {
+      "id": "s10",
+      "title": "Slack Marketplace review guide",
+      "url": "https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide",
+      "kind": "official"
+    },
+    {
+      "id": "s11",
+      "title": "Luciq AI & Slack Integration",
+      "url": "https://slack.com/marketplace/A0DB5GQPN-luciq-ai",
+      "kind": "official"
+    },
+    {
+      "id": "s13",
+      "title": "here’s what we learned : r/Slack",
+      "url": "https://www.reddit.com/r/Slack/comments/1jbatis/we_got_our_slack_app_approved_featured_on_the",
+      "kind": "community"
+    },
+    {
+      "id": "s16",
+      "title": "Explore Slack App Types: Single vs. Distributed Apps",
+      "url": "https://trailhead.salesforce.com/content/learn/modules/preparing-and-distributing-your-slack-app/get-to-know-the-slack-app-types",
+      "kind": "community"
+    },
+    {
+      "id": "s17",
+      "title": "Legacy OAuth scopes",
+      "url": "https://docs.slack.dev/legacy/legacy-authentication/legacy-oauth-scopes",
+      "kind": "official"
+    },
+    {
+      "id": "s18",
+      "title": "Scopes",
+      "url": "https://docs.slack.dev/reference/scopes",
+      "kind": "official"
+    },
+    {
+      "id": "s19",
+      "title": "Rate limits",
+      "url": "https://docs.slack.dev/apis/web-api/rate-limits",
+      "kind": "official"
+    },
+    {
+      "id": "s20",
+      "title": "Slack updates and changes",
+      "url": "https://slack.com/help/articles/115004846068-Slack-updates-and-changes",
+      "kind": "official"
+    },
+    {
+      "id": "s21",
+      "title": "How can I add many Slack OAuth scopes to a Slack app at once instead of one-by-one?",
+      "url": "https://webapps.stackexchange.com/questions/182308/how-can-i-add-many-slack-oauth-scopes-to-a-slack-app-at-once-instead-of-one-by-o",
+      "kind": "community"
+    },
+    {
+      "id": "s22",
+      "title": "OAuth Scopes for AI Agents: Step-Up, the Scope Union Trap, and RFC 9396",
+      "url": "https://ssojet.com/blog/oauth-scopes-ai-agents-permission-design-agentic-applications",
+      "kind": "community"
+    }
+  ],
+  "slug": "slack",
+  "origin": "generated",
+  "createdAt": "2026-10-30T06:26:34.577Z",
+  "lastCheckedAt": "2026-10-30T06:26:34.577Z",
+  "model": "gemini-3.5-flash + gemini-3.5-flash-lite (Gemini, agent search via Tavily)",
+  "query": "Slack",
+  "composio": {
+    "toolkitSlug": "SLACK",
+    "managed": true,
+    "note": "Composio provides a managed OAuth app for SLACK, so you can prototype without registering your own. You still need your own app for your branding on the consent screen, custom scopes, dedicated rate limits, or enterprise customers."
+  },
+  "verification": {
+    "summary": "Agent-generated from 16 sources. The fact-check re-read the cited pages for 6 key claims: 2 supported, 3 partially supported, 1 not supported (downgraded to inferred), 0 could not be fetched. No human has tried this setup yet.",
+    "probes": [
+      {
+        "name": "Composio managed auth",
+        "target": "docs.composio.dev/toolkits/managed-auth",
+        "ok": true,
+        "result": "Managed OAuth available (toolkit SLACK)."
+      },
+      {
+        "name": "Developer portal reachable",
+        "target": "https://api.slack.com/apps",
+        "ok": true,
+        "result": "HTTP 200"
+      },
+      {
+        "name": "OAuth authorize endpoint",
+        "target": "https://slack.com/oauth/v2/authorize",
+        "ok": true,
+        "result": "HTTP 200 (page mentions \"client_id\"). The endpoint is live and handled a request with a fake client_id, as expected."
+      },
+      {
+        "name": "OAuth/OIDC discovery metadata",
+        "target": "https://slack.com/.well-known/openid-configuration",
+        "ok": true,
+        "result": "Found. authorization_endpoint=https://slack.com/openid/connect/authorize; PKCE methods not advertised; 3 scopes advertised. Note: this differs from the documented authorize endpoint. The provider likely uses a separate endpoint for OpenID sign-in, so use the documented one for app authorization."
+      },
+      {
+        "name": "Cited source links",
+        "target": "16 sources",
+        "ok": true,
+        "result": "15/16 cited pages load; 1 block automated requests (s21)."
+      }
+    ],
+    "claimChecks": [
+      {
+        "claim": "Legacy scope mixing failure: Combining legacy umbrella scopes (e.g., 'bot') with modern granular scopes returns an 'invalid_scope' error from Slack.",
+        "location": "nuances[0]",
+        "sourceUrl": "https://docs.slack.dev/legacy/legacy-authentication/legacy-oauth-scopes",
+        "verdict": "supported",
+        "evidence": "Please note that certain scopes cannot be asked for in combination with each other . For instance, you cannot request both the bot scope and the client scope. When users arrive at an authorization page requesting invalid scope combinations, they'll see an ugly error stating something to this effect: \\\"OAuth error: invalid_scope: Cannot request service scope (bot) with deprecated scopes\\\""
+      },
+      {
+        "claim": "Exact redirect URI matching: The redirect URI path provided during authorization must strictly match or be a sub-directory of the pre-configured URI, and must match identically between authorize and token exchange.",
+        "location": "nuances[1]",
+        "sourceUrl": "https://docs.slack.dev/authentication/installing-with-oauth",
+        "verdict": "supported",
+        "evidence": "Your redirect_uri must match or be a subdirectory of a Redirect URL configured under App Management . A Redirect URL can not contain an anchor ( # )... If you sent a redirect_uri field in the first step, you must send that same field with the same value in this step."
+      },
+      {
+        "claim": "Privacy Policy & TOS Links: Public distribution and Marketplace approval require clear privacy policy and terms of service URLs.",
+        "location": "requirements[2]",
+        "sourceUrl": "https://slack.com/marketplace/A0DB5GQPN-luciq-ai",
+        "verdict": "partially_supported",
+        "evidence": "Terms of service https://www.luciq.ai/terms"
+      },
+      {
+        "claim": "Enable Public Distribution: Navigate to Manage Distribution in the app settings and activate Public Distribution so external workspace admins can authorize your app via HTTPS OAuth links.",
+        "location": "phases[2].steps[0]",
+        "sourceUrl": "https://trailhead.salesforce.com/content/learn/modules/preparing-and-distributing-your-slack-app/get-to-know-the-slack-app-types",
+        "verdict": "partially_supported",
+        "evidence": "When you’ve completed this preparation, simply go to your app configuration’s Manage Distribution page, and select Activate Public Distribution. That’s it! Note that, in this case, “public distribution” means distribution on the org."
+      },
+      {
+        "claim": "Prepare Marketplace submission materials: Prepare scope justifications, privacy policy links, security documentation, and a video demonstration of your agent if submitting for Marketplace approval.",
+        "location": "phases[2].steps[1]",
+        "sourceUrl": "https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide",
+        "verdict": "partially_supported",
+        "evidence": "As part of the submission process, you will be asked to review your app listing information, your app’s scopes, and to provide us with any supplementary information we need to test your app properly... You can help us review your app more quickly by providing us with a short video demo. For a new submission, it should include a video showing the full installation and OAuth flow, set-up process, an"
+      },
+      {
+        "claim": "channels:history is classified as sensitive. History scopes trigger additional review scrutiny during Marketplace listing.",
+        "location": "permissions[1]",
+        "sourceUrl": "https://docs.slack.dev/legacy/legacy-authentication/legacy-oauth-scopes",
+        "verdict": "not_supported",
+        "evidence": "None found"
+      }
+    ],
+    "setupAttempts": [],
+    "corrections": []
+  }
+}

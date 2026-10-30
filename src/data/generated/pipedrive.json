@@ -3,57 +3,57 @@
     "name": "Pipedrive",
     "website": "https://pipedrive.com",
     "category": "CRM",
-    "developerPortalUrl": "https://developers.pipedrive.com",
+    "developerPortalUrl": "https://pipedrive.readme.io/docs/marketplace-oauth-api",
     "docsUrl": "https://developers.pipedrive.com/docs/api/v1/Oauth",
     "authorizationEndpoint": "https://oauth.pipedrive.com/oauth/authorize"
   },
   "verdict": {
-    "headline": "Pipedrive offers free developer sandboxes for immediate local testing, but public distribution requires a formal marketplace review that can take up to 21 business days.",
-    "difficulty": 3,
-    "approvalTier": "review_required",
-    "timeToFirstConnection": "15–30 minutes to create a free sandbox account, register an app in Developer Hub, and complete the OAuth exchange locally.",
+    "headline": "Private apps can be shared directly via link with zero review required, while public Marketplace apps require up to 21 business days of formal review.",
+    "difficulty": 2,
+    "approvalTier": "self_serve",
+    "timeToFirstConnection": "15–30 minutes to set up a private app and test local OAuth redirection.",
     "timeToFirstConnectionShort": "15–30 min",
-    "timeToProduction": "Same day if using private apps via direct install links; up to 21 business days if publishing a public app on the Marketplace due to review times.",
-    "timeToProductionShort": "1 day (private) to 4 weeks (public)",
-    "handsOnEffort": "2–4 hours for app setup, token handling with tenant routing, demo video creation, and submission documentation.",
-    "cost": "Free ($0 listing and onboarding fees; Pipedrive takes a 20% commission on Marketplace-billed paid apps).",
-    "biggestRisk": "API routing failures caused by neglecting dynamic tenant `api_domain` endpoints, or app rejections due to unverified scopes and incomplete review demo videos."
+    "timeToProduction": "Same day for private unlisted apps shared via direct link; up to 21 business days if submitting for the public Marketplace.",
+    "timeToProductionShort": "Same day (Private); 3–4 weeks (Public)",
+    "handsOnEffort": "Minimal hands-on setup for private apps; extensive media assets, video demos, and test accounts required for public Marketplace review.",
+    "cost": "Free to register and use custom OAuth apps; API rate limits apply based on the customer's Pipedrive subscription plan.",
+    "biggestRisk": "Scope updates invalidate existing user tokens requiring complete re-installation, and changing scopes in the authorization URL manually triggers consent errors."
   },
   "ownAppDecision": {
-    "summary": "You must register your own OAuth app with Pipedrive because Composio uses a 'bring your own OAuth app' model for this integration.",
+    "summary": "You must register your own OAuth application in Pipedrive's Developer Hub and pass credentials to Composio.",
     "reasons": [
-      "Composio does not provide shared credentials for Pipedrive; you must input your own Client ID and Client Secret.",
-      "Access tokens in Pipedrive are tied to tenant-specific base URLs (`api_domain`) that must be routed per connected customer.",
-      "Custom scopes (such as `admin` or `leads:full`) must be explicitly declared and configured in your own Developer Hub app registration."
+      "Pipedrive requires custom OAuth apps for custom scopes and external redirect handling.",
+      "Private apps allow immediate distribution via shareable install links without going through Pipedrive's review process.",
+      "Per-customer dynamic API routing relies on returning specific api_domain attributes per account during token exchange."
     ]
   },
   "phases": [
     {
       "id": "prepare",
-      "name": "Account & Environment Preparation",
-      "goal": "Obtain a free developer sandbox and review the required API scopes.",
-      "duration": "10–15 min",
+      "name": "Prepare Development Account & Scope Plan",
+      "goal": "Set up a Pipedrive sandbox or developer company account and map out required API scopes.",
+      "duration": "10 minutes",
       "steps": [
         {
-          "title": "Create Developer Sandbox Account",
-          "detail": "Sign up for a free sandbox account at developers.pipedrive.com using your email and first name. No paid subscription is required.",
+          "title": "Access Pipedrive developer environment",
+          "detail": "Log into your Pipedrive account or use a Pipedrive sandbox environment for testing.",
           "owner": "you",
           "agentHelp": null,
           "time": "5 min",
           "sourceIds": [
+            "s3",
             "s4"
           ],
-          "confidence": "official"
+          "confidence": "community"
         },
         {
-          "title": "Define Scopes and App Type",
-          "detail": "Decide whether your integration will be a Private app (internal company use or direct link) or a Public app (Marketplace listing). Select minimal scopes needed for your agent.",
+          "title": "Define required scopes",
+          "detail": "Determine exact entity permissions required by your agent (e.g., base, contacts:read, search:read, admin).",
           "owner": "agent",
-          "agentHelp": "Audit required API endpoints against documented Pipedrive scopes (e.g., base, contacts:read, leads:full).",
-          "time": "10 min",
+          "agentHelp": "Analyze application feature requirements to recommend minimal required scopes.",
+          "time": "5 min",
           "sourceIds": [
-            "s3",
-            "s15"
+            "s16"
           ],
           "confidence": "official"
         }
@@ -61,52 +61,41 @@
     },
     {
       "id": "build",
-      "name": "App Registration & OAuth Implementation",
-      "goal": "Register your client in Developer Hub, capture tokens, and correctly route API requests to tenant subdomains.",
-      "duration": "1–2 hours",
+      "name": "Create App & Implement OAuth 2.0 Flow",
+      "goal": "Obtain client credentials, configure redirect URIs, and complete the token exchange code.",
+      "duration": "30 minutes",
       "steps": [
         {
-          "title": "Register App in Developer Hub",
-          "detail": "Open Developer Hub within your Pipedrive sandbox, register a new app, configure your exact OAuth callback URL, and obtain your client_id and client_secret.",
+          "title": "Register Private App in Developer Settings",
+          "detail": "Navigate to Marketplace settings in Pipedrive, create a new Private App, and configure the Callback URL.",
           "owner": "you",
-          "agentHelp": "Validate redirect URI structure and check for exact URL matches.",
+          "agentHelp": "Validate callback URLs and check ngrok tunnel formatting for local development.",
           "time": "10 min",
           "sourceIds": [
-            "s1",
-            "s3"
-          ],
-          "confidence": "official"
-        },
-        {
-          "title": "Implement Authorization Redirect",
-          "detail": "Direct users to https://oauth.pipedrive.com/oauth/authorize with client_id, redirect_uri, and an optional state parameter.",
-          "owner": "agent",
-          "agentHelp": "Generate authorization URL construction helper and CSRF state generator.",
-          "time": "15 min",
-          "sourceIds": [
-            "s1"
-          ],
-          "confidence": "official"
-        },
-        {
-          "title": "Implement Token Exchange and Basic Auth",
-          "detail": "Exchange authorization_code at POST https://oauth.pipedrive.com/oauth/token within 5 minutes. The request must use an HTTP Basic Auth header encoded with client_id:client_secret.",
-          "owner": "agent",
-          "agentHelp": "Generate token exchange client code including HTTP Basic header encoding and form body parameters.",
-          "time": "20 min",
-          "sourceIds": [
-            "s1",
             "s2",
-            "s5"
+            "s3",
+            "s9"
           ],
           "confidence": "official"
         },
         {
-          "title": "Persist Tenant Domain and Tokens",
-          "detail": "Save the returned api_domain (e.g., https://company.pipedrive.com) alongside access_token and refresh_token. Ensure the database field for access_token is at least varchar(768).",
+          "title": "Configure OAuth scopes in Developer Hub",
+          "detail": "Select necessary scopes directly in the app settings UI; do not append scope parameters to authorization URLs.",
+          "owner": "you",
+          "agentHelp": "Ensure scope settings match the code defaults to prevent consent error triggers.",
+          "time": "5 min",
+          "sourceIds": [
+            "s18",
+            "s19"
+          ],
+          "confidence": "community"
+        },
+        {
+          "title": "Implement Authorization & Token Exchange",
+          "detail": "Direct users to https://oauth.pipedrive.com/oauth/authorize and exchange codes at POST https://oauth.pipedrive.com/oauth/token.",
           "owner": "agent",
-          "agentHelp": "Generate database migrations with varchar(768) columns and write tenant-aware HTTP client wrappers.",
-          "time": "20 min",
+          "agentHelp": "Generate token exchange logic, store refresh tokens, and handle base api_domain routing dynamically.",
+          "time": "15 min",
           "sourceIds": [
             "s1",
             "s2"
@@ -117,43 +106,30 @@
     },
     {
       "id": "go_live",
-      "name": "Marketplace Review or Direct Distribution",
-      "goal": "Submit materials for public Marketplace review or distribute via direct private installation link.",
-      "duration": "1 day to 4 weeks",
+      "name": "Distribute App or Submit for Review",
+      "goal": "Deploy the application to production end-users either via direct install link or Marketplace review.",
+      "duration": "Same day (Private) or up to 21 business days (Public Marketplace)",
       "steps": [
         {
-          "title": "Compile Listing Materials",
-          "detail": "Provide a published Privacy Policy URL, Terms of Service URL, short summary (<=150 characters), app name, and 1 to 5 listing images.",
+          "title": "Distribute via Private Installation Link",
+          "detail": "Set Private App status to 'Live' and copy the shareable installation link for your customers.",
           "owner": "you",
-          "agentHelp": "Draft app description, feature summaries, and privacy policy sections covering Pipedrive data usage.",
-          "time": "1–2 hours",
+          "agentHelp": "Draft user-facing installation instructions and link documentation.",
+          "time": "5 min",
           "sourceIds": [
-            "s9",
-            "s10"
+            "s3",
+            "s11"
           ],
           "confidence": "inferred"
         },
         {
-          "title": "Record Scope Demo Video and Provide Test Accounts",
-          "detail": "Create a 1–3 minute video clearly demonstrating every requested scope in action. Set up functional credentials for the Pipedrive review team.",
+          "title": "Submit Public App for Review (Optional)",
+          "detail": "Provide terms of service, privacy policy, demo video, screenshots, and review credentials if publishing publicly.",
           "owner": "you",
-          "agentHelp": "Draft demo video script detailing step-by-step demonstrations of every requested OAuth scope.",
-          "time": "1–2 hours",
+          "agentHelp": "Draft privacy policy summaries, video demonstration scripts, and submission forms.",
+          "time": "Up to 21 business days (waiting)",
           "sourceIds": [
-            "s9",
             "s10"
-          ],
-          "confidence": "official"
-        },
-        {
-          "title": "Submit for App Approval",
-          "detail": "Agree to the Developer Partner Agreement and submit your app via Developer Hub. Await review results (can take up to 21 business days).",
-          "owner": "provider",
-          "agentHelp": null,
-          "time": "Up to 21 business days",
-          "sourceIds": [
-            "s9",
-            "s14"
           ],
           "confidence": "official"
         }
@@ -161,82 +137,72 @@
     },
     {
       "id": "maintain",
-      "name": "Token & App Maintenance",
-      "goal": "Prevent token expiration and maintain compliance with API rate limits.",
+      "name": "Token Refresh & Rate Limit Handling",
+      "goal": "Ensure uninterrupted API connectivity with token refresh handling and rate limit monitoring.",
       "duration": "Ongoing",
       "steps": [
         {
-          "title": "Maintain 60-Day Refresh Rotation",
-          "detail": "Execute refresh token exchanges before the 60-day inactivity cutoff to prevent customer sessions from invalidating permanently.",
+          "title": "Automate Token Refreshing",
+          "detail": "Refresh access tokens prior to their 60-minute expiration and ensure refresh tokens are used within 60 days.",
           "owner": "agent",
-          "agentHelp": "Automate proactive token refreshing background jobs running at scheduled intervals.",
+          "agentHelp": "Implement refresh logic background routines and handle 401 error retry states.",
           "time": "Ongoing",
           "sourceIds": [
+            "s1",
             "s2"
           ],
           "confidence": "official"
         },
         {
-          "title": "Handle Per-Tenant Rate Limits and API Updates",
-          "detail": "Monitor API usage against per-company token-bucket limits and ensure developer contact info remains active for deprecation notices.",
+          "title": "Monitor API Rate Limits",
+          "detail": "Track daily token consumption budgets and handle 429 Too Many Requests response status codes.",
           "owner": "agent",
-          "agentHelp": "Implement retry logic with backoff for rate-limited requests and audit for API version changelogs.",
+          "agentHelp": "Implement backoff strategies and check daily budget remaining headers.",
           "time": "Ongoing",
           "sourceIds": [
-            "s9",
-            "s14"
+            "s20"
           ],
-          "confidence": "community"
+          "confidence": "official"
         }
       ]
     }
   ],
   "requirements": [
     {
-      "item": "Pipedrive Sandbox Account",
+      "item": "HTTPS Callback Redirect URI",
       "neededFor": "development",
-      "detail": "Free account obtained at developers.pipedrive.com to create apps in Developer Hub and access test data.",
-      "sourceIds": [
-        "s4"
-      ],
-      "confidence": "official"
-    },
-    {
-      "item": "Exact Redirect Callback Match",
-      "neededFor": "development",
-      "detail": "The redirect_uri passed in both authorize and token endpoints must strictly match the URL registered in Developer Hub.",
+      "detail": "Requires an explicit HTTPS callback URI (e.g. via ngrok tunnel during development) matching the exact configured setting.",
       "sourceIds": [
         "s1",
-        "s2"
+        "s3"
       ],
       "confidence": "official"
     },
     {
-      "item": "Privacy Policy and Terms URLs",
-      "neededFor": "production",
-      "detail": "Live public links detailing data gathering, management, and terms of service are mandatory for public Marketplace approval.",
+      "item": "Pipedrive Account",
+      "neededFor": "development",
+      "detail": "A standard Pipedrive account or developer sandbox account is required to create and host OAuth apps.",
       "sourceIds": [
-        "s9",
+        "s3",
+        "s4"
+      ],
+      "confidence": "community"
+    },
+    {
+      "item": "Privacy Policy & Terms of Service",
+      "neededFor": "production",
+      "detail": "Required publicly accessible web pages for Public Marketplace app review submission.",
+      "sourceIds": [
         "s10"
       ],
       "confidence": "official"
     },
     {
-      "item": "Demo Video & Active Test Account",
+      "item": "Demo Video & Screenshots",
       "neededFor": "production",
-      "detail": "A 1–3 minute video demonstrating usage of all requested scopes and working test credentials for Pipedrive reviewers.",
+      "detail": "Public marketplace apps require 3–5 annotated screenshots and a detailed scope explanation demo video.",
       "sourceIds": [
-        "s9",
         "s10"
-      ],
-      "confidence": "official"
-    },
-    {
-      "item": "Developer Partner Agreement",
-      "neededFor": "production",
-      "detail": "Must be reviewed and agreed to prior to submitting a public app for marketplace listing.",
-      "sourceIds": [
-        "s9"
       ],
       "confidence": "official"
     }
@@ -244,320 +210,209 @@
   "permissions": [
     {
       "name": "base",
-      "purpose": "Read authorized user profile, basic settings, currencies, and user connections.",
+      "purpose": "Identify current authorized user details and account base currencies.",
       "tier": "basic",
-      "notes": "Automatically granted to all OAuth apps upon authorization.",
+      "notes": "Enabled by default for all created Pipedrive OAuth applications.",
       "sourceIds": [
-        "s1",
-        "s15"
+        "s16"
       ],
       "confidence": "official"
     },
     {
       "name": "contacts:read",
-      "purpose": "Query persons, organizations, notes, files, and filters for CRM contextual awareness.",
-      "tier": "sensitive",
-      "notes": "Read-only access to contact and company records.",
-      "sourceIds": [
-        "s15"
-      ],
-      "confidence": "official"
-    },
-    {
-      "name": "users:read",
-      "purpose": "Verify user identities, roles, and administrative permissions before executing privileged actions.",
+      "purpose": "Read contacts, persons, organizations, notes, and files.",
       "tier": "basic",
-      "notes": "Useful to inspect user permission sets via GET /users/{id}/permissions.",
+      "notes": "Allows AI agents to contextually read CRM contact data.",
       "sourceIds": [
-        "s15"
-      ],
-      "confidence": "official"
-    },
-    {
-      "name": "recents:read",
-      "purpose": "Track recent changes and account activities to synchronize CRM updates with the AI agent.",
-      "tier": "sensitive",
-      "notes": "Read access to the account changelog.",
-      "sourceIds": [
-        "s15"
+        "s16"
       ],
       "confidence": "official"
     },
     {
       "name": "search:read",
-      "purpose": "Search items across the customer's Pipedrive account via agent search queries.",
+      "purpose": "Perform global searches across Pipedrive CRM entities.",
       "tier": "basic",
-      "notes": "Read-only search capability.",
+      "notes": "Enables agent query and global search capabilities.",
       "sourceIds": [
-        "s15"
+        "s16"
       ],
       "confidence": "official"
     },
     {
-      "name": "leads:read",
-      "purpose": "View CRM leads, lead sources, and lead labels.",
-      "tier": "sensitive",
-      "notes": "Read-only access dedicated specifically to leads data.",
+      "name": "recents:read",
+      "purpose": "Fetch recent changes across activities, deals, and contacts.",
+      "tier": "basic",
+      "notes": "Useful for sync workflows and identifying newly updated records.",
       "sourceIds": [
-        "s15",
-        "s18"
-      ],
-      "confidence": "official"
-    },
-    {
-      "name": "leads:full",
-      "purpose": "Create, modify, label, and delete CRM leads autonomously.",
-      "tier": "restricted",
-      "notes": "Allows full CRUD operations (GET, POST, PATCH, DELETE) on leads.",
-      "sourceIds": [
-        "s18"
+        "s16"
       ],
       "confidence": "official"
     },
     {
       "name": "admin",
-      "purpose": "Configure custom fields, pipelines, stages, activity types, and manage webhooks.",
+      "purpose": "Full administrative read/write access to settings, webhooks, users, and pipelines.",
       "tier": "admin_consent",
-      "notes": "Required to manage app webhooks. If installed by a non-admin, admin-level endpoints will fail at runtime.",
+      "notes": "Requires the authorizing user to possess administrative privileges in their Pipedrive company.",
       "sourceIds": [
-        "s15"
+        "s16"
       ],
       "confidence": "official"
     }
   ],
   "nuances": [
     {
-      "title": "Dynamic Multi-Tenant API Base URLs",
-      "detail": "Pipedrive does not use a single static API host for authenticated REST calls. The OAuth token response returns an `api_domain` property (e.g., https://company.pipedrive.com) that must be stored and used as the base path for all subsequent API calls for that user.",
+      "title": "Per-Customer API Domains",
+      "detail": "Pipedrive routes API calls to account-specific domains returned as api_domain in the token exchange payload.",
       "impact": "high",
       "sourceIds": [
-        "s1",
-        "s2",
-        "s3"
+        "s1"
       ],
       "confidence": "official"
     },
     {
-      "title": "Token Column Length Requirement",
-      "detail": "Pipedrive access tokens contain variable-length encrypted payloads. Database columns allocated for access tokens must be sized to at least `varchar(768)` to avoid silent string truncation.",
-      "impact": "medium",
-      "sourceIds": [
-        "s2"
-      ],
-      "confidence": "official"
-    },
-    {
-      "title": "60-Day Inactive Refresh Token Expiry",
-      "detail": "While access tokens expire in 1 hour (3599 seconds), refresh tokens expire permanently if left unused for 60 consecutive days, forcing the user to complete the installation flow from scratch.",
-      "impact": "medium",
-      "sourceIds": [
-        "s2"
-      ],
-      "confidence": "official"
-    },
-    {
-      "title": "Non-Admin Installation of Admin Scope Apps",
-      "detail": "The marketplace consent screen does not block non-admin users from installing an app that requires the `admin` scope. If a non-admin installs it, administrative endpoints fail; apps must inspect `GET /users/{id}/permissions` to detect limited users.",
+      "title": "Scopes Configured via UI Only",
+      "detail": "Scopes are configured statically in the Developer Hub; passing scope parameters in authorization URLs causes errors or mismatches.",
       "impact": "high",
       "sourceIds": [
-        "s15"
+        "s18",
+        "s19"
       ],
-      "confidence": "official"
+      "confidence": "inferred"
     },
     {
-      "title": "All-or-Nothing Scope Consent",
-      "detail": "Pipedrive does not permit partial or selective scope approvals. End users must either accept all requested scopes in one screen or decline the installation entirely.",
-      "impact": "low",
+      "title": "Scope Updates Invalidate Tokens",
+      "detail": "Changing application permissions requires all previously authorized users to uninstall and reinstall the application.",
+      "impact": "medium",
       "sourceIds": [
-        "s15"
+        "s11"
       ],
-      "confidence": "official"
+      "confidence": "community"
     }
   ],
   "blockers": [
     {
-      "blocker": "Redirect URI Mismatch",
-      "symptom": "OAuth authorization or token exchange call fails immediately with an invalid redirect URI error.",
-      "howToProceed": "Ensure the redirect_uri query string in GET /oauth/authorize and the form parameter in POST /oauth/token match the exact string registered in Developer Hub character-for-character.",
+      "blocker": "App permissions have changed error",
+      "symptom": "Users see an error modal during OAuth authorization saying 'App permissions have changed. Refresh this page'.",
+      "howToProceed": "Remove the scope query parameter entirely from your authorization URL, as scopes must be managed solely in Developer Hub UI.",
       "sourceIds": [
-        "s1",
-        "s2"
+        "s18",
+        "s19"
       ],
-      "confidence": "official"
+      "confidence": "community"
     },
     {
-      "blocker": "Missing HTTP Basic Authorization Header",
-      "symptom": "POST to https://oauth.pipedrive.com/oauth/token fails with 401 Unauthorized or invalid client errors.",
-      "howToProceed": "Pass client_id and client_secret formatted as HTTP Basic Auth header: `Authorization: Basic base64(client_id:client_secret)` during the token POST.",
+      "blocker": "App is not found error",
+      "symptom": "External account users receive an 'App is not found' error when attempting OAuth consent.",
+      "howToProceed": "Ensure private apps are marked 'Live' or switch to private install links rather than testing across accounts with Draft public apps.",
       "sourceIds": [
-        "s1",
-        "s5"
+        "s11"
       ],
-      "confidence": "official"
-    },
-    {
-      "blocker": "Scope Failure Due to Non-Admin Installer",
-      "symptom": "Admin-scoped endpoints return forbidden/permission error codes even though the app was authorized.",
-      "howToProceed": "Query `GET /users/{id}/permissions` using the granted token upon installation. If the authorizing user lacks administrative privileges, prompt them to have an account administrator reinstall or reauthorize the app.",
-      "sourceIds": [
-        "s15"
-      ],
-      "confidence": "official"
+      "confidence": "community"
     }
   ],
   "agentVsYou": {
     "agentCan": [
-      "Generate OAuth redirect URLs, token exchange request handlers, and HTTP Basic authentication headers.",
-      "Write database models and migrations allocating `varchar(768)` for token storage and persisting the dynamic `api_domain`.",
-      "Implement token refresh scheduling logic to avoid the 60-day expiry window.",
-      "Draft required Marketplace submission copy, including scope justifications and demo video scripts."
+      "Generate OAuth request and token exchange code including dynamic api_domain handling.",
+      "Draft required scope explanations and review documentation text.",
+      "Set up automatic access token refresh handling routines."
     ],
     "youMust": [
-      "Sign up for the Pipedrive Sandbox Account at developers.pipedrive.com.",
-      "Register the app within the Pipedrive Developer Hub and input redirect URIs.",
-      "Record and host the 1–3 minute scope justification demo video.",
-      "Create and publish public Privacy Policy and Terms of Service URLs.",
-      "Accept the Pipedrive Developer Partner Agreement and submit the app for approval."
+      "Create the Private/Public app entry in Pipedrive's Developer Hub.",
+      "Select and toggling the required permission scopes in the Developer UI.",
+      "Record demo video and capture screenshots if submitting for public Marketplace review."
     ]
   },
   "drafts": [
     {
-      "title": "Marketplace Scope Justification Notes",
-      "purpose": "Explain to Pipedrive reviewers why each requested OAuth scope is required by your application.",
-      "content": "Dear Pipedrive App Review Team,\n\nOur integration, [APP_NAME], provides AI-assisted workflow automation for CRM teams. Below is the justification for our requested OAuth scopes:\n\n1. `base`: Required to authenticate the active user, detect the user's currency settings, and associate incoming activities via `/users/me`.\n2. `contacts:read`: Used by our AI assistant to retrieve relevant person and organization context when summarizing customer history.\n3. `leads:read` and `leads:full`: Required to let users draft, qualify, and update new leads directly from automated inbound channels.\n4. `admin`: Necessary for our integration to register and manage webhook subscriptions for real-time lead updates.\n\nWe have provided functional test credentials and demonstrated each scope in our attached review video. Let us know if you require any additional information."
+      "title": "Scope Justification Text",
+      "purpose": "Submitted during public marketplace app review to explain scope needs.",
+      "content": "Our AI Agent integration requires [contacts:read] and [search:read] to lookup relevant CRM records when users prompt the agent for information. Access is limited strictly to user-initiated agent queries within [YOUR_APP_NAME]."
     },
     {
-      "title": "Review Demo Video Script",
-      "purpose": "Step-by-step recording guide to demonstrate required scopes within 1–3 minutes.",
-      "content": "[0:00-0:30] Introduction: Show [APP_NAME] landing page, click 'Connect to Pipedrive', and show the OAuth consent dialog displaying all requested scopes (`base`, `contacts:read`, `leads:full`, `admin`).\n\n[0:30-1:00] Data Access Demo: Accept consent and show the app retrieving contact details (`contacts:read`) and recent CRM activity into the AI assistant interface.\n\n[1:00-1:45] Action & Mutation Demo: Trigger an AI action that creates a new lead in Pipedrive (`leads:full`). Switch tabs to the Pipedrive sandbox UI to verify the lead and custom activity appeared immediately.\n\n[1:45-2:15] Webhook / Admin Demo: Show the webhook registered via the `admin` scope firing in response to an update. Conclude by demonstrating token disconnect/revocation."
-    },
-    {
-      "title": "Non-Admin Privilege Warning Prompt",
-      "purpose": "UI notification shown when a user without administrative permissions authorizes an app requesting admin privileges.",
-      "content": "Notice: Pipedrive Administrator Permission Required\n\nHi [USER_NAME], you have successfully connected your Pipedrive account, but your user profile does not have administrative rights in [COMPANY_NAME].\n\nBecause [APP_NAME] synchronizes automated webhooks and pipeline settings (which requires the `admin` scope), some automated features will remain disabled.\n\nPlease ask a Pipedrive account administrator to reauthorize [APP_NAME] via this link: [INSTALL_LINK]."
+      "title": "Demo Video Script",
+      "purpose": "Script for recording the demo video required for Pipedrive Marketplace submission.",
+      "content": "In this video, we demonstrate how [YOUR_APP_NAME] integrates with Pipedrive using OAuth. First, the user clicks install and authorizes scopes: [LIST_SCOPES]. Next, the AI Agent fetches contact data via [api_domain] to assist the user with deal workflows."
     }
   ],
   "openQuestions": [
-    "Does Pipedrive enforce a specific test user or organization seat limit prior to public marketplace approval?",
-    "Does Pipedrive currently support PKCE (Proof Key for Code Exchange) on `https://oauth.pipedrive.com/oauth/authorize`?",
-    "Are there specific HTTP error codes and body payloads returned when an out-of-scope endpoint is requested?",
-    "Not confirmed by its cited source: \"Compile Listing Materials: Provide a published Privacy Policy URL, Terms of Service URL, short summary (<=150 characters), app name, and 1 to 5 listing images.\""
+    "Does Pipedrive support OAuth 2.0 PKCE for public clients?",
+    "Are there specific automated security scan requirements for public Marketplace approval?",
+    "Not confirmed by its cited source: \"Scopes Configured via UI Only: Scopes are configured statically in the Developer Hub; passing scope parameters in authorization URLs causes errors or mismatches\"",
+    "Not confirmed by its cited source: \"Distribute via Private Installation Link: Set Private App status to 'Live' and copy the shareable installation link for your customers.\""
   ],
   "sources": [
     {
       "id": "s1",
-      "title": "Pipedrive API v1 Dev References (Oauth) - Learn - Test - Try Now",
+      "title": "Pipedrive API v1 Dev References (Oauth)",
       "url": "https://developers.pipedrive.com/docs/api/v1/Oauth",
       "kind": "official"
     },
     {
       "id": "s2",
-      "title": "OAuth authorization - Pipedrive Developer Documentation",
+      "title": "OAuth authorization",
       "url": "https://pipedrive.readme.io/docs/marketplace-oauth-authorization",
       "kind": "official"
     },
     {
       "id": "s3",
-      "title": "OAuth 2.0 overview - Pipedrive Developer Documentation",
-      "url": "https://pipedrive.readme.io/docs/marketplace-oauth-api",
-      "kind": "official"
+      "title": "Integrations private APP - App Development - Pipedrive Developers' Community",
+      "url": "https://devcommunity.pipedrive.com/t/integrations-private-app/7591",
+      "kind": "community"
     },
     {
       "id": "s4",
-      "title": "Pipedrive Developers Corner | Pipedrive API sandbox",
-      "url": "https://developers.pipedrive.com",
-      "kind": "official"
-    },
-    {
-      "id": "s5",
-      "title": "OAuth authorization. Step 4 and Step 5: Getting the tokens",
-      "url": "https://devcommunity.pipedrive.com/t/oauth-authorization-step-4-and-step-5-getting-the-tokens/7821",
-      "kind": "community"
-    },
-    {
-      "id": "s6",
-      "title": "CRM API | REST API integration | Pipedrive",
-      "url": "https://www.pipedrive.com/en/features/crm-api",
-      "kind": "official"
-    },
-    {
-      "id": "s7",
-      "title": "How to register your own Pipedrive OAuth app - Nango Docs",
-      "url": "https://nango.dev/docs/api-integrations/pipedrive/how-to-register-your-own-pipedrive-api-oauth-app",
-      "kind": "community"
-    },
-    {
-      "id": "s8",
-      "title": "PDF OAuth2 Developers Guide - Ping Identity",
-      "url": "https://www.pingidentity.com/content/dam/developer/downloads/Resources/OAuth2%20Developers%20Guide%20(1).pdf",
+      "title": "leadFields Method return (403) Forbidden using Ouath authentication",
+      "url": "https://devcommunity.pipedrive.com/t/leadfields-method-return-403-forbidden-using-ouath-authentication/7086",
       "kind": "community"
     },
     {
       "id": "s9",
-      "title": "App approval process - Pipedrive Developer Documentation",
-      "url": "https://pipedrive.readme.io/docs/marketplace-app-approval-process",
+      "title": "Creating an app",
+      "url": "https://pipedrive.readme.io/docs/marketplace-creating-a-proper-app",
       "kind": "official"
     },
     {
       "id": "s10",
-      "title": "Registering a public app - Pipedrive Developer Documentation",
-      "url": "https://pipedrive.readme.io/docs/marketplace-registering-the-app",
+      "title": "App approval process",
+      "url": "https://pipedrive.readme.io/docs/marketplace-app-approval-process",
       "kind": "official"
     },
     {
       "id": "s11",
-      "title": "Pipedrive Marketplace: apps and integrations",
-      "url": "https://support.pipedrive.com/en/article/pipedrive-marketplace-apps-integrations",
-      "kind": "official"
-    },
-    {
-      "id": "s12",
-      "title": "Pipedrive Marketplace | CRM Extensions & Apps",
-      "url": "https://www.pipedrive.com/en/marketplace",
-      "kind": "official"
-    },
-    {
-      "id": "s13",
-      "title": "Pipedrive Marketplace Reviewer | Claude Code Skill",
-      "url": "https://mcpmarket.com/tools/skills/pipedrive-marketplace-readiness-reviewer",
+      "title": "Is app review required for OAuth app to be found by any user?",
+      "url": "https://devcommunity.pipedrive.com/t/is-app-review-required-for-oauth-app-to-be-found-by-any-user/7555",
       "kind": "community"
     },
     {
-      "id": "s14",
-      "title": "Pipedrive Marketplace for developers — auth, review & monetization ...",
-      "url": "https://www.platformappstores.com/categories/general-saas-app-marketplaces/pipedrive-marketplace",
-      "kind": "community"
-    },
-    {
-      "id": "s15",
-      "title": "Scopes and permission explanations - Pipedrive Developer Documentation",
+      "id": "s16",
+      "title": "Scopes and permission explanations",
       "url": "https://pipedrive.readme.io/docs/marketplace-scopes-and-permissions-explanations",
       "kind": "official"
     },
     {
-      "id": "s16",
-      "title": "Visibility and permissions overview - Knowledge Base | Pipedrive",
-      "url": "https://support.pipedrive.com/en/article/visibility-and-permissions-overview",
-      "kind": "official"
-    },
-    {
-      "id": "s17",
-      "title": "Permission sets - Knowledge Base | Pipedrive",
-      "url": "https://support.pipedrive.com/en/article/permission-sets",
-      "kind": "official"
-    },
-    {
       "id": "s18",
-      "title": "Leads OAuth scopes - Pipedrive",
-      "url": "https://developers.pipedrive.com/changelog/post/leads-oauth-scopes",
+      "title": "OAuth Authorization shows 'App permissions have changed'",
+      "url": "https://devcommunity.pipedrive.com/t/oauth-authorization-shows-app-permissions-have-changed-cannot-complete-authorization/19967",
+      "kind": "community"
+    },
+    {
+      "id": "s19",
+      "title": "Can I specify scopes when authorizing OAuth?",
+      "url": "https://devcommunity.pipedrive.com/t/can-i-specify-scopes-when-authorizing-oauth/3244",
+      "kind": "community"
+    },
+    {
+      "id": "s20",
+      "title": "Rate limiting",
+      "url": "https://pipedrive.readme.io/docs/core-api-concepts-rate-limiting",
       "kind": "official"
     }
   ],
   "slug": "pipedrive",
   "origin": "generated",
-  "createdAt": "2026-10-29T06:24:25.948Z",
-  "lastCheckedAt": "2026-10-29T06:24:25.948Z",
-  "model": "gemini-3.8-flash + gemini-3.5-flash-lite (Gemini, agent search via DuckDuckGo)",
+  "createdAt": "2026-10-30T06:28:31.375Z",
+  "lastCheckedAt": "2026-10-30T06:28:31.375Z",
+  "model": "gemini-3.5-flash + gemini-3.5-flash-lite (Gemini, agent search via Tavily)",
   "query": "Pipedrive",
   "composio": {
     "toolkitSlug": "PIPEDRIVE",
@@ -565,7 +420,7 @@
     "note": "Composio lists PIPEDRIVE as \"bring your own OAuth app\": you must register an OAuth app with the provider and give Composio its client ID and secret."
   },
   "verification": {
-    "summary": "Agent-generated from 18 sources. The fact-check re-read the cited pages for 6 key claims: 3 supported, 2 partially supported, 1 not supported (downgraded to inferred), 0 could not be fetched. No human has tried this setup yet.",
+    "summary": "Agent-generated from 11 sources. The fact-check re-read the cited pages for 6 key claims: 2 supported, 2 partially supported, 2 not supported (downgraded to inferred), 0 could not be fetched. No human has tried this setup yet.",
     "probes": [
       {
         "name": "Composio managed auth",
@@ -575,7 +430,7 @@
       },
       {
         "name": "Developer portal reachable",
-        "target": "https://developers.pipedrive.com",
+        "target": "https://pipedrive.readme.io/docs/marketplace-oauth-api",
         "ok": true,
         "result": "HTTP 200"
       },
@@ -593,53 +448,53 @@
       },
       {
         "name": "Cited source links",
-        "target": "18 sources",
+        "target": "11 sources",
         "ok": true,
-        "result": "18/18 cited pages load."
+        "result": "11/11 cited pages load."
       }
     ],
     "claimChecks": [
       {
-        "claim": "Dynamic Multi-Tenant API Base URLs: Pipedrive does not use a single static API host for authenticated REST calls. The OAuth token response returns an `api_domain` property (e.g., https://company.pipedrive.com) that must be stored and used as the base path for all subsequent API calls for that user.",
+        "claim": "Per-Customer API Domains: Pipedrive routes API calls to account-specific domains returned as api_domain in the token exchange payload.",
         "location": "nuances[0]",
         "sourceUrl": "https://developers.pipedrive.com/docs/api/v1/Oauth",
-        "verdict": "partially_supported",
+        "verdict": "supported",
         "evidence": "\"api_domain\": \"https://user-company.pipedrive.com\""
       },
       {
-        "claim": "Non-Admin Installation of Admin Scope Apps: The marketplace consent screen does not block non-admin users from installing an app that requires the `admin` scope. If a non-admin installs it, administrative endpoints fail; apps must inspect `GET /users/{id}/permissions` to detect limited users.",
-        "location": "nuances[3]",
-        "sourceUrl": "https://pipedrive.readme.io/docs/marketplace-scopes-and-permissions-explanations",
-        "verdict": "supported",
-        "evidence": "As the Marketplace doesn t restrict non-admin users from installing apps, your app will need to be able to handle users without admin rights installing the app, when the admin scope is required. [...] You can check that through the GET /users/{id}/permissions endpoint."
+        "claim": "Scopes Configured via UI Only: Scopes are configured statically in the Developer Hub; passing scope parameters in authorization URLs causes errors or mismatches.",
+        "location": "nuances[1]",
+        "sourceUrl": "https://devcommunity.pipedrive.com/t/oauth-authorization-shows-app-permissions-have-changed-cannot-complete-authorization/19967",
+        "verdict": "not_supported",
+        "evidence": "i can see that your app also has deals:full toggled in the developer hub ui , can you try either including it in the scope param you’re sending or omit sending the scope param"
       },
       {
-        "claim": "Privacy Policy and Terms URLs: Live public links detailing data gathering, management, and terms of service are mandatory for public Marketplace approval.",
+        "claim": "Privacy Policy & Terms of Service: Required publicly accessible web pages for Public Marketplace app review submission.",
         "location": "requirements[2]",
         "sourceUrl": "https://pipedrive.readme.io/docs/marketplace-app-approval-process",
         "verdict": "supported",
         "evidence": "Your app has a Terms of Service webpage with clearly stated rules that users must agree to abide by to use your service\n Your app has a Privacy Policy webpage of a legal document with most or all the information on how users’ data is gathered, used, communicated and managed"
       },
       {
-        "claim": "Demo Video & Active Test Account: A 1–3 minute video demonstrating usage of all requested scopes and working test credentials for Pipedrive reviewers.",
+        "claim": "Demo Video & Screenshots: Public marketplace apps require 3–5 annotated screenshots and a detailed scope explanation demo video.",
         "location": "requirements[3]",
         "sourceUrl": "https://pipedrive.readme.io/docs/marketplace-app-approval-process",
         "verdict": "partially_supported",
-        "evidence": "Provide our team with a demo video in which you explain the usage of permissions and scopes, as well as demonstrate the key functionality of your app Provide our team with fully functional and up-to-date test accounts that we will use to properly asses your app and its functionality with Pipedrive"
+        "evidence": "Your app listing includes 3-5 high-quality images that are easily readable and include assistive cues, such as annotations and highlights, illustrating how the app works in conjunction with Pipedrive"
       },
       {
-        "claim": "Compile Listing Materials: Provide a published Privacy Policy URL, Terms of Service URL, short summary (<=150 characters), app name, and 1 to 5 listing images.",
+        "claim": "Distribute via Private Installation Link: Set Private App status to 'Live' and copy the shareable installation link for your customers.",
         "location": "phases[2].steps[0]",
-        "sourceUrl": "https://pipedrive.readme.io/docs/marketplace-app-approval-process",
+        "sourceUrl": "https://devcommunity.pipedrive.com/t/integrations-private-app/7591",
         "verdict": "not_supported",
-        "evidence": "None found"
+        "evidence": "No mention of setting Private App status to 'Live' and copying the shareable installation link for customers appears in the page."
       },
       {
-        "claim": "Record Scope Demo Video and Provide Test Accounts: Create a 1–3 minute video clearly demonstrating every requested scope in action. Set up functional credentials for the Pipedrive review team.",
+        "claim": "Submit Public App for Review (Optional): Provide terms of service, privacy policy, demo video, screenshots, and review credentials if publishing publicly.",
         "location": "phases[2].steps[1]",
         "sourceUrl": "https://pipedrive.readme.io/docs/marketplace-app-approval-process",
-        "verdict": "supported",
-        "evidence": "Provide our team with a demo video in which you explain the usage of permissions and scopes, as well as demonstrate the key functionality of your app\n Provide our team with fully functional and up-to-date test accounts that we will use to properly asses your app and its functionality with Pipedrive"
+        "verdict": "partially_supported",
+        "evidence": "Provide our team with a demo video in which you explain the usage of permissions and scopes, as well as demonstrate the key functionality of your app"
       }
     ],
     "setupAttempts": [],

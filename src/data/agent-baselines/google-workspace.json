@@ -1,0 +1,570 @@
+{
+  "app": {
+    "name": "Gmail",
+    "website": "https://mail.google.com",
+    "category": "Google Workspace",
+    "developerPortalUrl": "https://console.cloud.google.com/apis/credentials",
+    "docsUrl": "https://developers.google.com/identity/protocols/oauth2",
+    "authorizationEndpoint": "https://accounts.google.com/o/oauth2/v2/auth"
+  },
+  "verdict": {
+    "headline": "Easy for local prototyping, but restricted scopes require rigorous verification and CASA security assessments for public production.",
+    "difficulty": 4,
+    "approvalTier": "review_required",
+    "timeToFirstConnection": "15–30 minutes to set up a dev client with test users.",
+    "timeToFirstConnectionShort": "15–30 min",
+    "timeToProduction": "Several weeks or longer due to Google OAuth verification and CASA security assessment for restricted Gmail scopes.",
+    "timeToProductionShort": "Several weeks or longer",
+    "handsOnEffort": "Moderate setup for GCP project, but high effort for submitting review materials, recording demo videos, and completing security assessments.",
+    "cost": "Free to register and test, though third-party security assessments may incur external costs depending on scope.",
+    "biggestRisk": "7-day refresh token expirations while unverified in testing mode, and potential rejection during CASA/OAuth verification for restricted Gmail scopes."
+  },
+  "ownAppDecision": {
+    "summary": "Use Composio's managed app to start immediately without setup. Register your own OAuth app when you need custom branding, dedicated rate limits, or production-grade access to restricted Gmail scopes.",
+    "reasons": [
+      "Composio lets you prototype immediately without setting up GCP credentials or consent screens.",
+      "Custom branding on the Google consent screen requires registering your own app.",
+      "Restricted Gmail API access in production requires your own verified GCP app and security assessment."
+    ]
+  },
+  "phases": [
+    {
+      "id": "prepare",
+      "name": "Preparation & GCP Setup",
+      "goal": "Establish a Google Cloud Project and configure basic OAuth consent screen settings.",
+      "duration": "15–30 minutes",
+      "steps": [
+        {
+          "title": "Create a Google Cloud Project",
+          "detail": "Navigate to the Google Cloud Console and set up a new project to host your OAuth credentials.",
+          "owner": "you",
+          "agentHelp": "Guide user through GCP navigation and project naming parameters.",
+          "time": "5 min",
+          "sourceIds": [
+            "s1",
+            "s6"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Configure OAuth Consent Screen",
+          "detail": "Define user type (External or Internal) and enter developer support details and verified domains.",
+          "owner": "you",
+          "agentHelp": "Draft initial consent screen metadata and generate compliance checklists.",
+          "time": "10 min",
+          "sourceIds": [
+            "s6",
+            "s19"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "name": "App Building & Testing",
+      "goal": "Generate OAuth credentials and test API calls with allowlisted test users.",
+      "duration": "1–2 hours",
+      "steps": [
+        {
+          "title": "Create Client Credentials",
+          "detail": "Select application type (e.g., Web application) and specify authorized redirect URIs.",
+          "owner": "you",
+          "agentHelp": "Validate redirect URI format according to Google's strict rules (no userinfo, valid TLDs).",
+          "time": "10 min",
+          "sourceIds": [
+            "s2",
+            "s5",
+            "s20"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Add Test Users and Scopes",
+          "detail": "Add test user emails to allowlist and select required Gmail API scopes (e.g., gmail.readonly, gmail.send).",
+          "owner": "you",
+          "agentHelp": "Draft scope list and confirm non-overlapping scope permissions.",
+          "time": "15 min",
+          "sourceIds": [
+            "s6",
+            "s17"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Implement Authorization Flow",
+          "detail": "Integrate OAuth 2.0 PKCE auth code flow with offline access (`access_type=offline`) to receive refresh tokens.",
+          "owner": "agent",
+          "agentHelp": "Generate full boilerplate code for Google OAuth authorization code exchange with PKCE.",
+          "time": "30 min",
+          "sourceIds": [
+            "s2",
+            "s5"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "go_live",
+      "name": "Verification & Go Live",
+      "goal": "Pass Google OAuth Verification and CASA Security Assessment for public deployment.",
+      "duration": "Several weeks",
+      "steps": [
+        {
+          "title": "Prepare Review Materials",
+          "detail": "Host an accessible privacy policy on your domain and record a demonstration video showing UI scope usage.",
+          "owner": "you",
+          "agentHelp": "Draft privacy policy language and review video scripts.",
+          "time": "2 hours",
+          "sourceIds": [
+            "s11",
+            "s12"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Submit for OAuth Verification",
+          "detail": "Submit consent screen details and screencast through the Google Cloud Console OAuth Verification Center.",
+          "owner": "you",
+          "agentHelp": "Pre-fill scope justification descriptions for submission forms.",
+          "time": "30 min",
+          "sourceIds": [
+            "s11",
+            "s12"
+          ],
+          "confidence": "official"
+        },
+        {
+          "title": "Complete CASA Security Assessment",
+          "detail": "For restricted scopes storing server data, complete the Cloud App Security Assessment (CASA) evaluation.",
+          "owner": "you",
+          "agentHelp": "Review security questionnaire requirements against implementation details.",
+          "time": "Several weeks (waiting)",
+          "sourceIds": [
+            "s12",
+            "s15"
+          ],
+          "confidence": "official"
+        }
+      ]
+    },
+    {
+      "id": "maintain",
+      "name": "Maintenance & Annual Compliance",
+      "goal": "Keep app compliant with annual security re-evaluations and credential maintenance.",
+      "duration": "Ongoing",
+      "steps": [
+        {
+          "title": "Annual Security Re-assessment",
+          "detail": "Re-verify restricted scope usage and renew CASA assessment every 12 months.",
+          "owner": "you",
+          "agentHelp": "Schedule automated reminders and track review deadline milestones.",
+          "time": "1 day per year",
+          "sourceIds": [
+            "s15"
+          ],
+          "confidence": "community"
+        },
+        {
+          "title": "Monitor App Activity",
+          "detail": "Ensure client ID activity remains active to prevent automatic deletion after 6 months of inactivity.",
+          "owner": "agent",
+          "agentHelp": "Periodically check API telemetry or automate dummy connection tests.",
+          "time": "Ongoing",
+          "sourceIds": [
+            "s20"
+          ],
+          "confidence": "official"
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "item": "Google Cloud Project",
+      "neededFor": "development",
+      "detail": "A GCP project is mandatory to set up the OAuth consent screen and register client credentials.",
+      "sourceIds": [
+        "s1",
+        "s6"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Publicly Accessible Privacy Policy",
+      "neededFor": "production",
+      "detail": "Must be hosted on the same domain as the app's homepage and linked on the consent screen.",
+      "sourceIds": [
+        "s11"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "Demonstration Video",
+      "neededFor": "production",
+      "detail": "Required for sensitive and restricted scopes to show how data is used in the application UI.",
+      "sourceIds": [
+        "s11",
+        "s12"
+      ],
+      "confidence": "official"
+    },
+    {
+      "item": "CASA Security Assessment",
+      "neededFor": "specific_permissions",
+      "detail": "Mandatory when storing/transmitting data obtained via restricted Gmail scopes on external servers.",
+      "sourceIds": [
+        "s12",
+        "s15"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "permissions": [
+    {
+      "name": "https://www.googleapis.com/auth/gmail.send",
+      "purpose": "Allows an AI agent to compose and send emails on the user's behalf.",
+      "tier": "sensitive",
+      "notes": "Requires OAuth verification but skips the full CASA security assessment.",
+      "sourceIds": [
+        "s17",
+        "s15"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "https://www.googleapis.com/auth/gmail.readonly",
+      "purpose": "Allows an AI agent to read email messages and settings.",
+      "tier": "restricted",
+      "notes": "Requires OAuth verification and CASA security assessment if data is stored on servers.",
+      "sourceIds": [
+        "s17",
+        "s15"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "https://www.googleapis.com/auth/gmail.metadata",
+      "purpose": "Allows an AI agent to read headers and labels without reading email body content.",
+      "tier": "restricted",
+      "notes": "Narrower alternative to full body access.",
+      "sourceIds": [
+        "s17"
+      ],
+      "confidence": "official"
+    },
+    {
+      "name": "https://www.googleapis.com/auth/gmail.modify",
+      "purpose": "Allows an AI agent to insert, update, and manage email content/labels.",
+      "tier": "restricted",
+      "notes": "Triggers highest verification scrutiny due to full mailbox access.",
+      "sourceIds": [
+        "s17",
+        "s15"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "nuances": [
+    {
+      "title": "7-Day Refresh Token Expiration in Testing Mode",
+      "detail": "While the OAuth app publish status is set to 'Testing', refresh tokens expire after 7 days, forcing frequent user re-authentication.",
+      "impact": "high",
+      "sourceIds": [
+        "s3",
+        "s14"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "6-Month Inactivity Deletion",
+      "detail": "OAuth 2.0 client IDs that remain completely inactive for 6 months are automatically deleted by Google.",
+      "impact": "medium",
+      "sourceIds": [
+        "s20"
+      ],
+      "confidence": "official"
+    },
+    {
+      "title": "Unverified App Consent Warnings",
+      "detail": "Users will see a prominent 'Unverified App' warning screen during consent until OAuth verification is fully passed.",
+      "impact": "high",
+      "sourceIds": [
+        "s14"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "Scope Mismatch / 403 Forbidden Error",
+      "symptom": "User receives a 403 Forbidden error during OAuth flow.",
+      "howToProceed": "Ensure the SDK or code requests the exact narrow scopes configured in the consent screen. Avoid automatic injection of broader scopes like gmail.modify.",
+      "sourceIds": [
+        "s21"
+      ],
+      "confidence": "community"
+    },
+    {
+      "blocker": "Redirect URI Mismatch",
+      "symptom": "Google returns a `redirect_uri_mismatch` error page during login.",
+      "howToProceed": "Verify that the request URL matches the exact authorized redirect URI string configured in the Google Cloud Console.",
+      "sourceIds": [
+        "s2",
+        "s5"
+      ],
+      "confidence": "official"
+    }
+  ],
+  "agentVsYou": {
+    "agentCan": [
+      "Generate backend code for OAuth 2.0 PKCE flow with Google.",
+      "Validate redirect URIs against Google Cloud syntax rules.",
+      "Draft rationale and scope justification text for verification forms.",
+      "Monitor refresh token activity to prevent 6-month inactivity expiration."
+    ],
+    "youMust": [
+      "Create and manage the Google Cloud Project.",
+      "Record and submit the UI scope demonstration video.",
+      "Host the privacy policy on your application's domain.",
+      "Complete the CASA security assessment questionnaire and audit."
+    ]
+  },
+  "drafts": [
+    {
+      "title": "OAuth Scope Justification Statement",
+      "purpose": "Explaining why restricted Gmail scopes are necessary during verification submission.",
+      "content": "Our app [APP_NAME] requires access to [SCOPE_NAME, e.g., https://www.googleapis.com/auth/gmail.readonly] in order to [PRIMARY_FEATURE, e.g., parse incoming customer service requests and generate automated summary drafts for users]. Data accessed is strictly limited to [DATA_ELEMENTS] and is never sold or used for advertising."
+    },
+    {
+      "title": "Demo Video Script",
+      "purpose": "Script for recording the required OAuth verification screencast.",
+      "content": "1. Show the application URL bar matching [DOMAIN_NAME].\n2. Demonstrate initiating the Google sign-in process.\n3. Show the Google OAuth consent screen displaying the app name and requested scopes.\n4. Proceed through consent and show how [APP_NAME] utilizes the data from [SCOPE_NAME] in the user interface."
+    }
+  ],
+  "openQuestions": [
+    "Specific third-party CASA security assessment fees and explicit pricing tiers are unmentioned in provided documentation.",
+    "Exact maximum limit on test users per app is not fully detailed beyond general unverified limits."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Manage OAuth application | IAM | Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/workforce-manage-oauth-app",
+      "kind": "official"
+    },
+    {
+      "id": "s2",
+      "title": "Using OAuth 2.0 for Web Server Applications | Authorization | Google for Developers",
+      "url": "https://developers.google.com/identity/protocols/oauth2/web-server",
+      "kind": "official"
+    },
+    {
+      "id": "s3",
+      "title": "Using OAuth 2.0 to Access Google APIs | Authorization | Google for Developers",
+      "url": "https://developers.google.com/identity/protocols/oauth2",
+      "kind": "official"
+    },
+    {
+      "id": "s4",
+      "title": "Authenticate to Google Workspace APIs with OAuth 2.0 client credentials | SAP on Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sap/docs/abap-sdk/on-premises-or-any-cloud/latest/authentication-oauth-client-credentials",
+      "kind": "official"
+    },
+    {
+      "id": "s5",
+      "title": "OAuth 2.0 for Desktop Apps | Google for Developers",
+      "url": "https://developers.google.com/identity/protocols/oauth2/native-app",
+      "kind": "official"
+    },
+    {
+      "id": "s6",
+      "title": "Configure OAuth | Google Workspace Marketplace | Google for Developers",
+      "url": "https://developers.google.com/workspace/marketplace/configure-oauth-consent-screen",
+      "kind": "official"
+    },
+    {
+      "id": "s7",
+      "title": "Set up Gmail with Nango - Nango Docs",
+      "url": "https://nango.dev/docs/api-integrations/google-mail/how-to-register-your-own-gmail-api-oauth-app",
+      "kind": "community"
+    },
+    {
+      "id": "s8",
+      "title": "Fixing Gmail API OAuth Token Authentication Problems in Google Workspace for Education",
+      "url": "https://medium.com/@python-javascript-php-html-css/fixing-gmail-api-oauth-token-authentication-problems-in-google-workspace-for-education-9792b882df0c",
+      "kind": "community"
+    },
+    {
+      "id": "s9",
+      "title": "App review process and requirements for the Google Workspace Marketplace | Google for Developers",
+      "url": "https://developers.google.com/workspace/marketplace/about-app-review",
+      "kind": "official"
+    },
+    {
+      "id": "s10",
+      "title": "Publish apps to the Google Workspace Marketplace | Google for Developers",
+      "url": "https://developers.google.com/workspace/marketplace/how-to-publish",
+      "kind": "official"
+    },
+    {
+      "id": "s11",
+      "title": "Sensitive scope verification | Google for Developers",
+      "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification",
+      "kind": "official"
+    },
+    {
+      "id": "s12",
+      "title": "Restricted scope verification | Google for Developers",
+      "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification",
+      "kind": "official"
+    },
+    {
+      "id": "s13",
+      "title": "OAuth 2.0 Scopes for Google APIs | Google for Developers",
+      "url": "https://developers.google.com/identity/protocols/oauth2/scopes",
+      "kind": "official"
+    },
+    {
+      "id": "s14",
+      "title": "OAuth app state overview | Google for Developers",
+      "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/overview",
+      "kind": "official"
+    },
+    {
+      "id": "s15",
+      "title": "Google verification and security assessment guide | Nylas Docs",
+      "url": "https://developer.nylas.com/docs/provider-guides/google/google-verification-security-assessment-guide",
+      "kind": "community"
+    },
+    {
+      "id": "s16",
+      "title": "Where is the list of which Google OAuth2 scopes are considered sensitive?",
+      "url": "https://stackoverflow.com/questions/54351702/where-is-the-list-of-which-google-oauth2-scopes-are-considered-sensitive",
+      "kind": "community"
+    },
+    {
+      "id": "s17",
+      "title": "Choose Gmail API scopes | Google for Developers",
+      "url": "https://developers.google.com/workspace/gmail/api/auth/scopes",
+      "kind": "official"
+    },
+    {
+      "id": "s18",
+      "title": "workspace permissions not working - Gemini Apps Community",
+      "url": "https://support.google.com/gemini/thread/447560637/workspace-permissions-not-working?hl=en",
+      "kind": "official"
+    },
+    {
+      "id": "s19",
+      "title": "Configure the OAuth consent screen and choose scopes | Google Workspace | Google for Developers",
+      "url": "https://developers.google.com/workspace/guides/configure-oauth-consent",
+      "kind": "official"
+    },
+    {
+      "id": "s20",
+      "title": "Manage OAuth Clients - Google Cloud Platform Console Help",
+      "url": "https://support.google.com/cloud/answer/15549257?hl=en",
+      "kind": "official"
+    },
+    {
+      "id": "s21",
+      "title": "How to set Gmail OAuth for ONLY READ? - Questions - n8n Community",
+      "url": "https://community.n8n.io/t/how-to-set-gmail-oauth-for-only-read/144805?tl=en",
+      "kind": "community"
+    }
+  ],
+  "slug": "google-workspace",
+  "origin": "generated",
+  "createdAt": "2026-10-30T06:26:36.376Z",
+  "lastCheckedAt": "2026-10-30T06:26:36.376Z",
+  "model": "gemini-3.5-flash + gemini-3.5-flash-lite (Gemini, agent search via Tavily)",
+  "query": "Gmail",
+  "composio": {
+    "toolkitSlug": "GMAIL",
+    "managed": true,
+    "note": "Composio provides a managed OAuth app for GMAIL, so you can prototype without registering your own. You still need your own app for your branding on the consent screen, custom scopes, dedicated rate limits, or enterprise customers."
+  },
+  "verification": {
+    "summary": "Agent-generated from 21 sources. The fact-check re-read the cited pages for 6 key claims: 6 supported, 0 partially supported, 0 not supported (downgraded to inferred), 0 could not be fetched. No human has tried this setup yet.",
+    "probes": [
+      {
+        "name": "Composio managed auth",
+        "target": "docs.composio.dev/toolkits/managed-auth",
+        "ok": true,
+        "result": "Managed OAuth available (toolkit GMAIL)."
+      },
+      {
+        "name": "Developer portal reachable",
+        "target": "https://console.cloud.google.com/apis/credentials",
+        "ok": true,
+        "result": "HTTP 200 (redirected to accounts.google.com)"
+      },
+      {
+        "name": "OAuth authorize endpoint",
+        "target": "https://accounts.google.com/o/oauth2/v2/auth",
+        "ok": true,
+        "result": "HTTP 302 → redirects to accounts.google.com/signin/oauth/error. The endpoint is live and handled a request with a fake client_id, as expected."
+      },
+      {
+        "name": "OAuth/OIDC discovery metadata",
+        "target": "https://accounts.google.com/.well-known/openid-configuration",
+        "ok": true,
+        "result": "Found. authorization_endpoint=https://accounts.google.com/o/oauth2/v2/auth; PKCE: plain, S256; 3 scopes advertised."
+      },
+      {
+        "name": "Cited source links",
+        "target": "21 sources",
+        "ok": true,
+        "result": "19/21 cited pages load; 2 block automated requests (s8, s16)."
+      }
+    ],
+    "claimChecks": [
+      {
+        "claim": "7-Day Refresh Token Expiration in Testing Mode: While the OAuth app publish status is set to 'Testing', refresh tokens expire after 7 days, forcing frequent user re-authentication.",
+        "location": "nuances[0]",
+        "sourceUrl": "https://developers.google.com/identity/protocols/oauth2",
+        "verdict": "supported",
+        "evidence": "외부 사용자 유형 및 '테스트' 게시 상태로 구성된 OAuth 동의 화면이 있는 Google Cloud Platform 프로젝트에는 7일 후에 만료되는 갱신 토큰이 발급됩니다."
+      },
+      {
+        "claim": "Unverified App Consent Warnings: Users will see a prominent 'Unverified App' warning screen during consent until OAuth verification is fully passed.",
+        "location": "nuances[2]",
+        "sourceUrl": "https://developers.google.com/identity/protocols/oauth2/production-readiness/overview",
+        "verdict": "supported",
+        "evidence": "Additionally, for apps requesting sensitive or restricted scopes, unverified app warnings (Danger UI) will be displayed to users, and a hard cap of 100 total users applies."
+      },
+      {
+        "claim": "Publicly Accessible Privacy Policy: Must be hosted on the same domain as the app's homepage and linked on the consent screen.",
+        "location": "requirements[1]",
+        "sourceUrl": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification",
+        "verdict": "supported",
+        "evidence": "The privacy policy must be visible to users, hosted within the same domain as your application's home page, and linked to on the OAuth consent screen of the Google API Console."
+      },
+      {
+        "claim": "Demonstration Video: Required for sensitive and restricted scopes to show how data is used in the application UI.",
+        "location": "requirements[2]",
+        "sourceUrl": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification",
+        "verdict": "supported",
+        "evidence": "If your app also requires verification for sensitive or restricted scopes, navigate to the OAuth Verification Center to track your Data access status and provide any additional information requested, such as a demonstration video."
+      },
+      {
+        "claim": "Prepare Review Materials: Host an accessible privacy policy on your domain and record a demonstration video showing UI scope usage.",
+        "location": "phases[2].steps[0]",
+        "sourceUrl": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification",
+        "verdict": "supported",
+        "evidence": "The privacy policy must be visible to users, hosted within the same domain as your application's home page, and linked to on the OAuth consent screen of the Google API Console."
+      },
+      {
+        "claim": "Submit for OAuth Verification: Submit consent screen details and screencast through the Google Cloud Console OAuth Verification Center.",
+        "location": "phases[2].steps[1]",
+        "sourceUrl": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification",
+        "verdict": "supported",
+        "evidence": "If your app also requires verification for sensitive or restricted scopes, navigate to the OAuth Verification Center to track your Data access status and provide any additional information requested, such as a demonstration video."
+      }
+    ],
+    "setupAttempts": [],
+    "corrections": []
+  }
+}

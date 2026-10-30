@@ -19,8 +19,9 @@ Live demo: _<add Vercel URL>_ · Verification report: `/verification`
 | | |
 |---|---|
 | **Library of 100 OAuth apps** | Taken from Composio's OAuth toolkit directory, with each app's managed vs. bring-your-own status. |
-| **7 curated guides** (human-verified) | GitHub, Slack, Google Workspace (Gmail), Meta (Facebook & Instagram), LinkedIn, Microsoft 365 (Outlook & Teams), Zoom. Chosen to cover every approval tier. |
-| **Live generation** | Submit any app name or website. An agent pipeline researches it and publishes a guide in about 2–3 minutes while you watch each step. |
+| **7 curated guides** | GitHub, Slack, Google Workspace (Gmail), Meta (Facebook & Instagram), LinkedIn, Microsoft 365 (Outlook & Teams), Zoom. Chosen to cover every approval tier. Built from cited evidence packs; GitHub, Slack and Google were also set up hands-on. |
+| **Agent guides out of the box** | Pipedrive, Xero, Harvest: apps with **no** Composio-managed OAuth app, where developers need a guide most. |
+| **Live generation** | Submit any app name or website. An agent pipeline researches it and publishes a guide in about 1 minute while you watch each step. |
 | **Shareable output** | Permanent URL, Markdown export (`/guides/<slug>/markdown`), copy-as-Markdown for pasting into another agent's context, and a print/PDF layout. A per-browser checklist tracks progress and shows the next step. |
 
 ## How the agent works
@@ -52,14 +53,28 @@ query ──► resolve (library match or web lookup + Composio managed-auth sta
 5. **The library grows by itself.** Every live generation is saved and appears in the library for the next developer. Re-running the agent refreshes a guide.
 6. **Curated guides cover the full spectrum on purpose:** GitHub (self-serve) → Slack and Microsoft (limited until review or admin consent) → Google, Meta and Zoom (formal review) → LinkedIn (partner-gated).
 
-## Verification
+## Verification: what we tested, what sources support, what we corrected
 
-See `/verification` in the app and [`docs/manual-verification-checklist.md`](docs/manual-verification-checklist.md).
+Full report at `/verification` in the app. Hands-on steps are in [`docs/manual-verification-checklist.md`](docs/manual-verification-checklist.md).
 
-- Curated guides were built from evidence packs: facts with URLs and verbatim quotes, written by research agents and reviewed against the quoted text.
-- Live probes ran against every curated provider (authorize endpoint, discovery, portal, all cited links).
-- The live agent was run alone on curated apps and compared with the verified guides (agreed / missed / wrong).
-- Hands-on setup attempts with free accounts are recorded in each guide's Evidence section.
+**How guides were checked**
+- **Sources.** Curated guides were built from evidence packs: facts with URLs and verbatim quotes, written by research agents and reviewed against the quoted text. They cite 195 official and 19 community sources across the 7 guides.
+- **Live probes** ran against every curated provider: authorize endpoint with a fake client ID, OAuth/OIDC discovery, developer portal, and every cited link. All 7 authorize endpoints and all 7 discovery documents responded, and all cited links load.
+- **Hands-on setup** (2026-10-30, free personal accounts, `https://example.com/oauth/callback` as the redirect). Steps exercised by hand are labelled **Tested** in the guides.
+
+| Provider | Outcome | What it confirmed | What it corrected or added |
+|---|---|---|---|
+| GitHub | ✅ Authorized in minutes | No review of any kind for an OAuth App | The callback carries an undocumented `iss=https://github.com/login/oauth` parameter |
+| Slack | ✅ Installed into own workspace | No review to install; "Blank app" replaces "From scratch" | Docs say redirect URLs must be HTTPS, but the settings form accepted `http://example.com/x` |
+| Google (Gmail) | ✅ Authorized as test user | `gmail.send` is **sensitive** and `gmail.readonly` is **restricted** (the scope that triggers the annual security assessment). Testing mode works immediately | Test users get a milder "currently being tested" screen with a direct **Continue**; the "Advanced → Go to app" path from a community source doesn't apply to them. Callback carries `iss`. Scopes appear only after the API is enabled |
+| Zoom, Meta, LinkedIn, Microsoft | Not attempted | Docs and probes only | Labelled accordingly |
+
+**Agent alone vs. human-verified.** We ran the live agent with no help on GitHub, Slack and Gmail and compared it with the curated guides (details at `/verification`). It matched the curated verdict for GitHub (1/5, self-serve) and Gmail (4/5, review required, correct scope tiers). For Slack it missed the 2025 rate-limit cut for apps not listed in the Marketplace, and so rated Slack 2/5 self-serve instead of 3/5 limited until reviewed. The fact-checker caught 2 of its wrong claims. Agent guides make a good, clearly labelled first draft; recent policy changes are where human curation matters most.
+
+**What we learned**
+- **The docs were right on the things that matter most**: tiers, review requirements, timelines. The hands-on differences were in UI details and edge behaviour, which change quietly and are exactly what a developer trips over.
+- **Our own instructions failed before the providers' did.** The tester got stuck twice on our checklist (Slack's renamed button, and a skipped "enable the Gmail API" step) and never on the guides' own steps. Guides need re-checking against the live UI, which is why every guide shows a "last checked" date.
+- **What we could not verify**: anything behind a real review (Google verification and the CASA assessment, Meta App Review and Business Verification, LinkedIn partner approval, Zoom Marketplace review). Those timelines rest on official statements plus labelled community reports, and are listed under "Still uncertain" in each guide.
 
 ## Run locally
 
@@ -112,7 +127,8 @@ docs/                       manual verification checklist
 - **Hands-on attempts stop where free accounts stop.** We did not pay for a CASA assessment, pass Meta Business Verification, or get accepted into a LinkedIn partner program, so those steps rest on official docs and labelled community reports.
 - **Agent guides are only as good as public docs.** JavaScript-heavy or bot-blocking docs (some Meta and Zoom pages) can't be re-read by the fact-checker; those claims are marked as not re-readable.
 - **Keyless search is fragile.** DuckDuckGo throttled us after a few bursts of queries and then blocked us for a while (Bing's keyless results were unusable). The crawler fallback still produces a sourced guide, but a thinner one. Set `TAVILY_API_KEY` (free) for consistent results.
-- **Name collisions.** One run for "Harvest" (time tracking) pulled in a page about Greenhouse's unrelated "Harvest" API. Ranking prefers the provider's own domain, but a reader should check the Sources list on agent-generated guides.
+- **Off-topic sources.** Broad searches can return generic OAuth pages from other products. One Harvest run cited Mailchimp, Square and Okta pages and failed 3 of 4 fact-checks. The agent now drops fetched pages that don't mention the app, and the fact-check catches what slips through, but readers should still check the Sources list on agent-generated guides.
+- **Free-tier rate limits.** Generating several guides at once on the free Gemini tier hits 429s; the agent retries with backoff and falls back between models, so concurrent runs are slower but complete.
 - **Timelines are ranges, not promises.** Community-reported durations are anecdotes and are labelled that way.
 - **Abuse protection is minimal:** a per-instance, in-memory rate limit on live generation, and reruns are cached by slug. A production version would add auth, a durable rate limit and a job queue.
 - **No credentials are stored** and the app never asks for provider secrets.

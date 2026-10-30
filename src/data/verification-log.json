@@ -20,7 +20,98 @@
     {
       "title": "Google: scope tiers confirmed hands-on; warning screen differs for test users",
       "detail": "The console labelled gmail.send sensitive and gmail.readonly restricted, as the guide said. Test users see a milder 'currently being tested' warning with a direct Continue button, not the Advanced > Go to app path a community source described. We corrected the blocker. Authorization works in Testing mode immediately even for a restricted scope; the cost comes later, at verification time."
+    },
+    {
+      "title": "Agent alone vs. human-verified: right on verdicts for well-documented providers, but it misses recent policy changes",
+      "detail": "Run with no help, the live agent matched the curated verdict for GitHub and Google. For Slack it missed the 2025 rate-limit change for unlisted apps, which is the main thing a Slack agent builder needs to know, and so under-rated the difficulty. It also borrowed Google's 'sensitive' scope vocabulary for GitHub and Slack. The fact-checker caught 2 of these wrong claims. Takeaway: agent guides are a good first draft and clearly labelled as such; recent changelog-level changes are where human curation adds the most."
     }
   ],
-  "comparisons": []
+  "comparisons": [
+    {
+      "slug": "github",
+      "app": "GitHub",
+      "agent": {
+        "difficulty": 1,
+        "approvalTier": "self_serve",
+        "timeToProduction": "Same day; org approvals vary"
+      },
+      "curated": {
+        "difficulty": 1,
+        "approvalTier": "self_serve",
+        "timeToProduction": "Same day; org approvals vary"
+      },
+      "agreed": [
+        "Self-serve with no review; same difficulty (1/5) and production estimate",
+        "Org OAuth access restrictions are the main real-world blocker",
+        "GitHub recommends GitHub Apps over OAuth Apps for fine-grained permissions",
+        "Tokens per user are capped"
+      ],
+      "missed": [
+        "The August 2026 change: new OAuth Apps get 8-hour expiring tokens plus refresh tokens",
+        "GitHub returns 404, not 403, for blocked private repos, so failures look like missing data",
+        "SAML SSO orgs need an active SSO session per token",
+        "Only 9 sources (the curated guide used 25)"
+      ],
+      "wrong": [
+        "Labelled repo, workflow and hook scopes 'sensitive'; GitHub has no sensitive/restricted scope tiers (that's Google's model)",
+        "One claim about rate-limit monitoring was not supported by its cited page (the fact-checker caught it and downgraded it)"
+      ]
+    },
+    {
+      "slug": "slack",
+      "app": "Slack",
+      "agent": {
+        "difficulty": 2,
+        "approvalTier": "self_serve",
+        "timeToProduction": "Same day (weeks for Marketplace)"
+      },
+      "curated": {
+        "difficulty": 3,
+        "approvalTier": "limited_until_review",
+        "timeToProduction": "Same day; 2-4 months for Marketplace"
+      },
+      "agreed": [
+        "Public distribution needs no review; Marketplace listing does",
+        "Exact redirect URI matching and scope-union behaviour on reinstall",
+        "The published app's configuration locks after listing"
+      ],
+      "missed": [
+        "The 2025 rate-limit cut for non-Marketplace apps: conversations.history/replies drop to 1 request per minute (15 messages). This is the main reason the curated guide rates Slack 3/5 'limited until reviewed', not 2/5 self-serve",
+        "The 10-active-workspace prerequisite before Marketplace submission, and the review length (up to 10 weeks)",
+        "Classic apps stop working on Nov 16, 2026"
+      ],
+      "wrong": [
+        "Tier: 'self_serve', difficulty 2, and 'weeks' for Marketplace, versus 'limited until reviewed', 3, and 2-4 months",
+        "Called channels:history 'sensitive'; the fact-checker found the cited page doesn't say so and downgraded it to Inferred"
+      ]
+    },
+    {
+      "slug": "google-workspace",
+      "app": "Google Workspace (Gmail)",
+      "agent": {
+        "difficulty": 4,
+        "approvalTier": "review_required",
+        "timeToProduction": "Several weeks or longer"
+      },
+      "curated": {
+        "difficulty": 4,
+        "approvalTier": "review_required",
+        "timeToProduction": "Days to 6+ weeks, by scope"
+      },
+      "agreed": [
+        "Review required, difficulty 4/5",
+        "gmail.send sensitive and gmail.readonly restricted, both later confirmed hands-on in the console",
+        "Restricted scopes need CASA; Testing-mode refresh tokens expire after 7 days",
+        "All 6 fact-checked claims supported by their sources"
+      ],
+      "missed": [
+        "The 100-user cap for unverified apps lasts the project's lifetime and can't be reset",
+        "Google's 2026 Workspace policy rules for AI agents (user confirmation of tool calls, prompt-injection defenses)",
+        "Cheaper paths by scope tier (drive.file and non-sensitive scopes avoid review); CASA cost range"
+      ],
+      "wrong": [
+        "Nothing material; its timeline ('several weeks or longer') was vaguer than the scope-based ranges"
+      ]
+    }
+  ]
 }
