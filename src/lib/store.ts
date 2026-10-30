@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import os from "os";
 import path from "path";
 import { get, put } from "@vercel/blob";
+import { connection } from "next/server";
 import { curatedGuides } from "@/data/guides";
 import { seedGeneratedGuides } from "@/data/generated";
 import type { ApprovalTier, Guide } from "./guide-schema";
@@ -28,6 +29,9 @@ const localDir = () =>
   process.env.VERCEL ? path.join(os.tmpdir(), "oauth-path") : path.join(process.cwd(), ".data");
 
 async function readJson<T>(pathname: string): Promise<T | null> {
+  // Stored guides change at runtime, so reads must happen per request, never at prerender time.
+  // (Also required because @vercel/blob checks token expiry with Date.now(), which prerendering rejects.)
+  await connection();
   if (blobEnabled()) {
     try {
       const res = await get(pathname, { access: "private", useCache: false });
